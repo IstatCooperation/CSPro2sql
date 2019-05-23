@@ -120,4 +120,4 @@ To monitor the loader activity run:
 The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
 
 ## License
-CsPro2Sql is EUPL-licensed
+CSPro2Sql is EUPL-licensed
