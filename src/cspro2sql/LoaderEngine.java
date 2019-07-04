@@ -62,9 +62,9 @@ public class LoaderEngine {
         }
         try {
             List<Dictionary> dictionaries = DictionaryReader.parseDictionaries(
-                    prop.getProperty("db.dest.schema"),
-                    prop.getProperty("dictionary"),
-                    prop.getProperty("dictionary.prefix"));
+                    prop.getProperty("db.dest.schema").trim(),
+                    prop.getProperty("dictionary").trim(),
+                    prop.getProperty("dictionary.prefix").trim());
             
             execute(dictionaries, prop, true, true, false, true, false, null);
         } catch (Exception ex) {
@@ -79,30 +79,34 @@ public class LoaderEngine {
         for (Dictionary dictionary : dictionaries) {
             try {
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
-                String srcSchema = prop.getProperty("db.source.schema");
+                String srcSchema = prop.getProperty("db.source.schema").trim();
                 String srcDataTable = dictionary.getName();
 
                 //Connect to the source database
+                System.out.println("Connecting to " + prop.getProperty("db.source.uri").trim() + "/" + srcSchema);
                 try (Connection connSrc = DriverManager.getConnection(
-                        prop.getProperty("db.source.uri") + "/" + srcSchema + "?autoReconnect=true&useSSL=false",
-                        prop.getProperty("db.source.username"),
-                        prop.getProperty("db.source.password"))) {
+                        prop.getProperty("db.source.uri").trim() + "/" + srcSchema + "?autoReconnect=true&useSSL=false",
+                        prop.getProperty("db.source.username").trim(),
+                        prop.getProperty("db.source.password").trim())) {
                     connSrc.setReadOnly(true);
-
+                    System.out.println("Connection successful!");
+                    
                     //Connect to the destination database
                     String destConnString;
                     if("sqlserver".equals(prop.getProperty("db.dest.type"))){
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-                        destConnString = prop.getProperty("db.dest.uri") + ";databasename=" + dictionary.getSchema();
+                        destConnString = prop.getProperty("db.dest.uri").trim() + ";databasename=" + dictionary.getSchema();
                     } else {
-                        destConnString = prop.getProperty("db.dest.uri") + "/" + dictionary.getSchema() + "?autoReconnect=true&useSSL=false";
+                        destConnString = prop.getProperty("db.dest.uri").trim() + "/" + dictionary.getSchema() + "?autoReconnect=true&useSSL=false";
                     }
                     
+                    System.out.println("Connecting to " + destConnString);
                     try (Connection connDst = DriverManager.getConnection(
                             destConnString,
-                            prop.getProperty("db.dest.username"),
-                            prop.getProperty("db.dest.password"))) {
+                            prop.getProperty("db.dest.username").trim(),
+                            prop.getProperty("db.dest.password").trim())) {
                         connDst.setAutoCommit(false);
+                        System.out.println("Connection successful!");
 
                         DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
 
