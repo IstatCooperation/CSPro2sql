@@ -40,7 +40,7 @@ import org.apache.commons.cli.ParseException;
  */
 public class Main {
 
-    private static final String VERSION = "0.9.16";
+    private static final String VERSION = "0.9.5";
 
     public static void main(String[] args) {
         CsPro2SqlOptions opts = getCommandLineOptions(args);
@@ -81,7 +81,9 @@ public class Main {
             error = !StatusEngine.execute(dictionaries, opts.prop);
         } else if (opts.linkageEngine) {
             //error = !LinkageEngine.execute(dictionary, pesDictionary, opts.prop, opts.ps);
-        } else if (opts.loadAndUpdate) {
+        } else if (opts.testConnectionEngine) {
+            error = !TestConnectionEngine.execute(opts.prop);
+        }else if (opts.loadAndUpdate) {
             while (true) {
                 try {
                     LoaderEngine.execute(dictionaries, opts.prop, opts.allRecords, opts.checkConstraints, opts.checkOnly, opts.force, opts.recovery, opts.ps);
@@ -191,6 +193,9 @@ public class Main {
                     case "status":
                         opts.statusEngine = true;
                         break;
+                    case "connection":
+                        opts.testConnectionEngine = true;
+                        break;
                     case "linkage":
                         opts.linkageEngine = true;
                         break;
@@ -235,6 +240,7 @@ public class Main {
         boolean statusEngine;
         boolean linkageEngine;
         boolean loadAndUpdate;
+        boolean testConnectionEngine;
         boolean allRecords;
         boolean foreignKeys;
         boolean checkConstraints;
@@ -259,13 +265,14 @@ public class Main {
 
             //System.out.println("CsPro2Sql - version " + VERSION + "\n");
             formatter.printHelp("\n\n"
-                    + "CsPro2Sql -e schema  -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]\n"
-                    + "CsPro2Sql -e loader  -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE] [-d DELAY]\n"
-                    + "CsPro2Sql -e monitor -p PROPERTIES_FILE [-o OUTPUT_FILE]\n"
-                    + "CsPro2Sql -e linkage -p PROPERTIES_FILE [-o OUTPUT_FILE]\n"
-                    + "CsPro2Sql -e update  -p PROPERTIES_FILE\n"
-                    + "CsPro2Sql -e status  -p PROPERTIES_FILE\n"
-                    + "CsPro2Sql -e LU      -p PROPERTIES_FILE -d DELAY [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]\n"
+                    + "CsPro2Sql -e schema      -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]\n"
+                    + "CsPro2Sql -e loader      -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE] [-d DELAY]\n"
+                    + "CsPro2Sql -e monitor     -p PROPERTIES_FILE [-o OUTPUT_FILE]\n"
+                    + "CsPro2Sql -e linkage     -p PROPERTIES_FILE [-o OUTPUT_FILE]\n"
+                    + "CsPro2Sql -e update      -p PROPERTIES_FILE\n"
+                    + "CsPro2Sql -e status      -p PROPERTIES_FILE\n"
+                    + "CsPro2Sql -e connection  -p PROPERTIES_FILE\n"
+                    + "CsPro2Sql -e LU          -p PROPERTIES_FILE -d DELAY [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]\n"
                     + "CsPro2Sql -v\n"
                     + "\n"
                     + "Engines descriptions:\n"
@@ -275,6 +282,7 @@ public class Main {
                     + " - linkage: create the sql script to setup the PES system\n"
                     + " - update: update the reports of the monitoring system\n"
                     + " - status: print the loader status\n"
+                    + " - connection: test source/destination database connection\n"
                     + " - LU: load and update\n"
                     + "\n", options);
 
