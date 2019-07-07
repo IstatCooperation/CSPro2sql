@@ -48,12 +48,13 @@ public class UpdateEngine {
     static boolean execute(Properties prop) {
         String schema = prop.getProperty("db.dest.schema").trim();
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 
             //Connect to the destination database
             System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
             try (Connection connDst = DriverManager.getConnection(
-                    prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + "?autoReconnect=true&useSSL=false",
+                    prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + 
+                            "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
                     prop.getProperty("db.dest.username").trim(),
                     prop.getProperty("db.dest.password").trim())) {
                 connDst.setAutoCommit(false);

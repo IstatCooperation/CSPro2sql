@@ -78,29 +78,30 @@ public class LoaderEngine {
 
         for (Dictionary dictionary : dictionaries) {
             try {
-                Class.forName("com.mysql.jdbc.Driver").newInstance();
+                Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
                 String srcSchema = prop.getProperty("db.source.schema").trim();
                 String srcDataTable = dictionary.getName();
 
                 //Connect to the source database
                 System.out.println("Connecting to " + prop.getProperty("db.source.uri").trim() + "/" + srcSchema);
                 try (Connection connSrc = DriverManager.getConnection(
-                        prop.getProperty("db.source.uri").trim() + "/" + srcSchema + "?autoReconnect=true&useSSL=false",
+                        prop.getProperty("db.source.uri").trim() + "/" + srcSchema + 
+                                "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
                         prop.getProperty("db.source.username").trim(),
                         prop.getProperty("db.source.password").trim())) {
                     connSrc.setReadOnly(true);
                     System.out.println("Connection successful!");
                     
                     //Connect to the destination database
+                    System.out.println("Connecting to " + prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim());
                     String destConnString;
                     if("sqlserver".equals(prop.getProperty("db.dest.type"))){
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                         destConnString = prop.getProperty("db.dest.uri").trim() + ";databasename=" + dictionary.getSchema();
                     } else {
-                        destConnString = prop.getProperty("db.dest.uri").trim() + "/" + dictionary.getSchema() + "?autoReconnect=true&useSSL=false";
+                        destConnString = prop.getProperty("db.dest.uri").trim() + "/" + dictionary.getSchema() + 
+                                "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
                     }
-                    
-                    System.out.println("Connecting to " + destConnString);
                     try (Connection connDst = DriverManager.getConnection(
                             destConnString,
                             prop.getProperty("db.dest.username").trim(),

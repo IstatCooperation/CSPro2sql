@@ -10,6 +10,8 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -41,6 +43,7 @@ import org.apache.commons.cli.ParseException;
 public class Main {
 
     private static final String VERSION = "0.9.5";
+    private static final Logger LOGGER = Logger.getLogger(LoaderEngine.class.getName());
 
     public static void main(String[] args) {
         CsPro2SqlOptions opts = getCommandLineOptions(args);
@@ -49,6 +52,7 @@ public class Main {
         try {
             dictionaries = DictionaryReader.parseDictionaries(opts.schema, opts.dictionary, opts.tablePrefix);
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Could not access dictionary files. Please check the paths specified in your properties file", e);
             opts.ps.close();
             opts.printError(e.getMessage());
             return;

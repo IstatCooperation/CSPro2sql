@@ -5,7 +5,6 @@
  */
 package cspro2sql;
 
-import static cspro2sql.UpdateEngine.execute;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -43,11 +42,11 @@ public class TestConnectionEngine {
     public static boolean execute(Properties prop) {
         try {
             //Test source database connetcion
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            //Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+            Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
             System.out.println("Connecting to " + prop.getProperty("db.source.uri").trim() + "/" + prop.getProperty("db.source.schema").trim());
             try (Connection connSrc = DriverManager.getConnection(
-                    prop.getProperty("db.source.uri").trim() + "/" + prop.getProperty("db.source.schema").trim() + "?autoReconnect=true&useSSL=false",
+                    prop.getProperty("db.source.uri").trim() + "/" + prop.getProperty("db.source.schema").trim() + 
+                            "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
                     prop.getProperty("db.source.username").trim(),
                     prop.getProperty("db.source.password").trim())) {
                 connSrc.setReadOnly(true);
@@ -60,7 +59,8 @@ public class TestConnectionEngine {
                     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                     destConnString = prop.getProperty("db.dest.uri").trim() + ";databasename=" + prop.getProperty("db.dest.schema").trim();
                 } else {
-                    destConnString = prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + "?autoReconnect=true&useSSL=false";
+                    destConnString = prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + 
+                            "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
                 }
        
                 try (Connection connDst = DriverManager.getConnection(
