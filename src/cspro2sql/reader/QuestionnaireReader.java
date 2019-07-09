@@ -35,6 +35,7 @@ public class QuestionnaireReader {
         Questionnaire result = new Questionnaire(questionnaire, schema, guid, deleted);
         String[] rows = questionnaire.split(Dictionary.DICT_NEWLINE_REGEXP);
         Record record = dictionary.getMainRecord();
+        //System.out.println("Record: " + record.getName());
         List<List<Answer>> valuesList = new LinkedList<>();
         result.setRecordValues(record, valuesList);
         List<Answer> values = new LinkedList<>();
@@ -43,7 +44,7 @@ public class QuestionnaireReader {
             parseItem(item, rows[0], values);
         }
         for (String row : rows) {
-            record = dictionary.getRecord(row.charAt(0));
+            record = dictionary.getRecord(getRecordTypeValue(row, dictionary.getRecordTypeLen()));
             valuesList = result.getRecordValues(record);
             if (valuesList == null) {
                 valuesList = new LinkedList<>();
@@ -59,6 +60,7 @@ public class QuestionnaireReader {
     }
 
     private static void parseItem(Item item, String row, List<Answer> values) {
+        //System.out.println("Item " + item.getName());
         if (row.length() < item.getStart()) {
             values.add(new Answer(item, null));
         } else {
@@ -77,6 +79,15 @@ public class QuestionnaireReader {
         for (Item subItem : item.getSubItems()) {
             parseItem(subItem, row, values);
         }
+    }
+
+    private static String getRecordTypeValue(String row, Integer recordTypeLength) {
+        String recordTypeValue = "";
+        for (int i = 0; i < recordTypeLength; i++) {
+            recordTypeValue += row.charAt(i);
+        }
+        //System.out.println("RecordTypeValue: " + recordTypeValue);        
+        return recordTypeValue;
     }
 
 }

@@ -56,6 +56,10 @@ public class Territory {
         return this.items.isEmpty();
     }
 
+    public List<TerritoryItem> getItemsList() {
+        return itemsList;
+    }
+    
     public TerritoryItem getFirst() {
         return this.itemsList.get(0);
     }

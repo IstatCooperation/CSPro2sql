@@ -42,6 +42,13 @@ public final class Item extends Taggable {
     private final List<Item> subItems = new ArrayList<>();
     private final List<ValueSet> valueSets = new ArrayList<>();
 
+    public Item() {
+    }
+
+    public Item(String name) {
+        this.name = name;
+    }
+
     public Record getRecord() {
         return record;
     }

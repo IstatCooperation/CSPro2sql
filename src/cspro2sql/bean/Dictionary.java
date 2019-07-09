@@ -1,5 +1,6 @@
 package cspro2sql.bean;
 
+import java.io.BufferedReader;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -116,6 +117,7 @@ public final class Dictionary extends Taggable {
     private final Map<Tag, List<Taggable>> tags = new HashMap<>();
 
     private String name;
+    private Integer recordTypeLen;
     private Record lastRecord;
     private List<Item> lastItems;
     private List<Item> lastItemsNotSubItem;
@@ -139,6 +141,14 @@ public final class Dictionary extends Taggable {
 
     public void setName(String name) {
         this.name = name;
+    }
+    
+    public Integer getRecordTypeLen() {
+        return recordTypeLen;
+    }
+
+    public void setRecordTypeLen(Integer recordTypeLen) {
+        this.recordTypeLen = recordTypeLen;
     }
     
     public void addRecord(Record record) {

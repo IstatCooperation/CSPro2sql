@@ -28,6 +28,7 @@ public class Answer {
     public String error;
 
     public Answer(Item item, String value) {
+        //System.out.println("Item " + item.getName() + ": " + value);
         this.item = item;
         this.value = (value == null) ? null : value.trim();
     }

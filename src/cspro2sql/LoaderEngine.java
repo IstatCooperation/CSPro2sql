@@ -1,5 +1,6 @@
 package cspro2sql;
 
+import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.DictionaryInfo;
 import cspro2sql.bean.Questionnaire;
@@ -66,7 +67,7 @@ public class LoaderEngine {
                     prop.getProperty("dictionary").trim(),
                     prop.getProperty("dictionary.prefix").trim());
             
-            execute(dictionaries, prop, true, true, false, true, false, null);
+            execute(dictionaries, prop, true, false, false, true, false, null);
         } catch (Exception ex) {
             System.exit(1);
         }
@@ -84,28 +85,18 @@ public class LoaderEngine {
 
                 //Connect to the source database
                 System.out.println("Connecting to " + prop.getProperty("db.source.uri").trim() + "/" + srcSchema);
-                try (Connection connSrc = DriverManager.getConnection(
-                        prop.getProperty("db.source.uri").trim() + "/" + srcSchema + 
-                                "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
-                        prop.getProperty("db.source.username").trim(),
-                        prop.getProperty("db.source.password").trim())) {
+                ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
+                try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                     connSrc.setReadOnly(true);
                     System.out.println("Connection successful!");
                     
                     //Connect to the destination database
                     System.out.println("Connecting to " + prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim());
-                    String destConnString;
                     if("sqlserver".equals(prop.getProperty("db.dest.type"))){
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-                        destConnString = prop.getProperty("db.dest.uri").trim() + ";databasename=" + dictionary.getSchema();
-                    } else {
-                        destConnString = prop.getProperty("db.dest.uri").trim() + "/" + dictionary.getSchema() + 
-                                "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
                     }
-                    try (Connection connDst = DriverManager.getConnection(
-                            destConnString,
-                            prop.getProperty("db.dest.username").trim(),
-                            prop.getProperty("db.dest.password").trim())) {
+                    ConnectionParams destConnParams = ConnectionParams.getDestParams(prop);
+                    try (Connection connDst = DriverManager.getConnection(destConnParams.getUri(), destConnParams.getUsername(), destConnParams.getPassword())) {
                         connDst.setAutoCommit(false);
                         System.out.println("Connection successful!");
 

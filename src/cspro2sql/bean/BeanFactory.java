@@ -35,9 +35,12 @@ public final class BeanFactory {
         while ((line = br.readLine()) != null) {
             if (line.startsWith(Dictionary.DICT_NAME)) {
                 dictionary.setName(getValue(line));
+            } else if (line.startsWith(Dictionary.HEADER_RECLEN)) {
+                dictionary.setRecordTypeLen(Integer.parseInt(getValue(line)));
             } else if (line.startsWith(Dictionary.DICT_NOTE)) {
                 parseNote(dictionary, getValue(line));
-            } else if (line.isEmpty()) {
+            } 
+            else if (line.isEmpty()) {
                 break;
             }
         }

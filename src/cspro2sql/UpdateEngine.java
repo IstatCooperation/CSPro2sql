@@ -1,5 +1,6 @@
 package cspro2sql;
 
+import cspro2sql.bean.ConnectionParams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -52,11 +53,8 @@ public class UpdateEngine {
 
             //Connect to the destination database
             System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
-            try (Connection connDst = DriverManager.getConnection(
-                    prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + 
-                            "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
-                    prop.getProperty("db.dest.username").trim(),
-                    prop.getProperty("db.dest.password").trim())) {
+            ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
+            try (Connection connDst = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                 connDst.setAutoCommit(false);
                 System.out.println("Connection successful!");
 
