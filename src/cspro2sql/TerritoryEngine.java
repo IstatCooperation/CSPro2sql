@@ -1,6 +1,5 @@
 package cspro2sql;
 
-import static cspro2sql.TestConnectionEngine.execute;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -49,7 +48,7 @@ public class TerritoryEngine {
     }
     
      public static boolean execute(Properties prop) {
-         
+         System.out.println("Running territory");
          return true;
      }
 }

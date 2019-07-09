@@ -87,7 +87,9 @@ public class Main {
             //error = !LinkageEngine.execute(dictionary, pesDictionary, opts.prop, opts.ps);
         } else if (opts.testConnectionEngine) {
             error = !TestConnectionEngine.execute(opts.prop);
-        }else if (opts.loadAndUpdate) {
+        } else if (opts.territoryEngine) {
+            error = !TerritoryEngine.execute(opts.prop);
+        } else if (opts.loadAndUpdate) {
             while (true) {
                 try {
                     LoaderEngine.execute(dictionaries, opts.prop, opts.allRecords, opts.checkConstraints, opts.checkOnly, opts.force, opts.recovery, opts.ps);
@@ -200,6 +202,9 @@ public class Main {
                     case "connection":
                         opts.testConnectionEngine = true;
                         break;
+                    case "territory":
+                        opts.territoryEngine = true;
+                        break;
                     case "linkage":
                         opts.linkageEngine = true;
                         break;
@@ -245,6 +250,7 @@ public class Main {
         boolean linkageEngine;
         boolean loadAndUpdate;
         boolean testConnectionEngine;
+        boolean territoryEngine;
         boolean allRecords;
         boolean foreignKeys;
         boolean checkConstraints;
@@ -276,6 +282,7 @@ public class Main {
                     + "CsPro2Sql -e update      -p PROPERTIES_FILE\n"
                     + "CsPro2Sql -e status      -p PROPERTIES_FILE\n"
                     + "CsPro2Sql -e connection  -p PROPERTIES_FILE\n"
+                    + "CsPro2Sql -e territory   -p PROPERTIES_FILE\n"
                     + "CsPro2Sql -e LU          -p PROPERTIES_FILE -d DELAY [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]\n"
                     + "CsPro2Sql -v\n"
                     + "\n"
@@ -287,6 +294,7 @@ public class Main {
                     + " - update: update the reports of the monitoring system\n"
                     + " - status: print the loader status\n"
                     + " - connection: test source/destination database connection\n"
+                    + " - territory: generate the territory table\n"
                     + " - LU: load and update\n"
                     + "\n", options);
 
