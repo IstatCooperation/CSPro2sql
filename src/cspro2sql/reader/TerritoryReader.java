@@ -35,32 +35,35 @@ import java.util.List;
  */
 public class TerritoryReader {
 
-    public static Territory parseTerritoryStructure(String territoryStructure) {
-
-        Territory territory = new Territory();
-        String[] territoryElements = territoryStructure.split(",");
-
-        for (String element : territoryElements) {
-            territory.addItem(new Item(element));
-            territory.addItem(new Item(element + "_NAME"));
-        }
-
-        return territory;
-    }
-
-    public static List<Territory> parseTerritory(String territoryFile, Territory territoryStructure) throws Exception {
-
+    public static List<Territory> parseTerritory(String territoryFile, String territoryHierarchy) throws Exception {
+        Territory territoryStructure;
         List<Territory> territoryList = new ArrayList<>();
 
-        if (territoryFile != null && !territoryFile.isEmpty()) {
-            try {
-                territoryList = read(territoryFile, territoryStructure);
-            } catch (IOException ex) {
-                throw new Exception("Impossible to read territory file " + territoryFile + " (" + ex.getMessage() + ")", ex);
+        if (territoryHierarchy != null && !territoryHierarchy.isEmpty()) {
+            territoryStructure = parseTerritoryStructure(territoryHierarchy);
+
+            if (territoryFile != null && !territoryFile.isEmpty()) {
+                try {
+                    territoryList = read(territoryFile, territoryStructure);
+                } catch (IOException ex) {
+                    throw new Exception("Impossible to read territory file " + territoryFile + " (" + ex.getMessage() + ")", ex);
+                }
             }
         }
 
         return territoryList;
+    }
+
+    public static Territory parseTerritoryStructure(String territoryHierarchy) {
+        Territory territory = new Territory();
+        String[] territoryElements = territoryHierarchy.split(",");
+
+        for (String element : territoryElements) {
+            territory.addItem(element);
+            territory.addItem(element + "_NAME");
+        }
+
+        return territory;
     }
 
     private static List<Territory> read(String fileName, Territory territoryStructure) throws IOException {
@@ -83,7 +86,7 @@ public class TerritoryReader {
         String line;
         Boolean isFirstLine = true;
         while ((line = br.readLine()) != null) {
-            String[] columns = line.split(",");
+            String[] columns = line.split(";");
             if (isFirstLine) {
                 if (!checkFileStructure(columns, territoryStructure)) {
                     throw new ExportException("Territory file doesn't match territory structure");
@@ -96,13 +99,12 @@ public class TerritoryReader {
     }
 
     private static boolean checkFileStructure(String[] fileCols, Territory territoryStructure) {
-
         List<TerritoryItem> items = territoryStructure.getItemsList();
-
         for (String col : fileCols) {
-            if(!checkColumnName(col, items)) return false;
+            if (!checkColumnName(col, items)) {
+                return false;
+            }
         }
-
         return true;
     }
 
@@ -114,11 +116,11 @@ public class TerritoryReader {
         }
         return false;
     }
-    
-    private static Territory parseLine(String[] fileCols){
+
+    private static Territory parseLine(String[] fileCols) {
         Territory terr = new Territory();
         for (String col : fileCols) {
-            terr.addItem(new Item(col));
+            terr.addItem(col);
         }
         return terr;
     }

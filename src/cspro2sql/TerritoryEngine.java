@@ -1,7 +1,12 @@
 package cspro2sql;
 
+import cspro2sql.bean.Territory;
+import cspro2sql.reader.TerritoryReader;
+import cspro2sql.writer.TerritoryWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,15 +45,30 @@ public class TerritoryEngine {
             return;
         }
         try {
-            execute(prop);
+            execute(prop, System.out);
         } catch (Exception ex) {
             System.exit(1);
         }
 
     }
     
-     public static boolean execute(Properties prop) {
-         System.out.println("Running territory");
+     public static boolean execute(Properties prop, PrintStream out) {
+         List<Territory> territoryList;
+         Territory territoryStructure;
+         if(prop.getProperty("territory.structure") != null && !prop.getProperty("territory.structure").isEmpty()){
+             try {
+                 territoryStructure = TerritoryReader.parseTerritoryStructure(prop.getProperty("territory.structure"));
+                 territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), prop.getProperty("territory.structure"));
+                 TerritoryWriter.write(territoryList, territoryStructure, prop.getProperty("db.dest.schema"), out);
+             } catch (Exception ex) {
+                 LOGGER.log(Level.SEVERE, "Error parsing territory file", ex);
+                 return false;
+             }
+         } else{
+             System.out.println("Territory properties are missing in properties file!");
+             return false;
+         }
+         
          return true;
      }
 }

@@ -52,6 +52,10 @@ public class Territory {
         itemsList.add(territoryItem);
     }
 
+    public void addItem(String name){
+        itemsList.add(new TerritoryItem(null, null, name));
+    }
+    
     public boolean isEmpty() {
         return this.items.isEmpty();
     }
