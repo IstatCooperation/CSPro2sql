@@ -89,6 +89,8 @@ public class Main {
             error = !TestConnectionEngine.execute(opts.prop);
         } else if (opts.territoryEngine) {
             error = !TerritoryEngine.execute(dictionaries, opts.prop);
+        } else if (opts.scanEngine) {
+            error = !ScanEngine.execute(dictionaries, opts.prop);
         } else if (opts.loadAndUpdate) {
             while (true) {
                 try {
@@ -205,6 +207,9 @@ public class Main {
                     case "territory":
                         opts.territoryEngine = true;
                         break;
+                    case "scan":
+                        opts.scanEngine = true;
+                        break;
                     case "linkage":
                         opts.linkageEngine = true;
                         break;
@@ -251,6 +256,7 @@ public class Main {
         boolean loadAndUpdate;
         boolean testConnectionEngine;
         boolean territoryEngine;
+        boolean scanEngine;
         boolean allRecords;
         boolean foreignKeys;
         boolean checkConstraints;
@@ -287,6 +293,7 @@ public class Main {
                     + "CsPro2Sql -v\n"
                     + "\n"
                     + "Engines descriptions:\n"
+                    + " - scan: check input data and metadata\n"
                     + " - schema: create the sql script for microdata\n"
                     + " - loader: load microdata into the sql database\n"
                     + " - monitor: create the sql script to setup the monitoring system\n"
