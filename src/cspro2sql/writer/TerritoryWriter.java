@@ -3,6 +3,9 @@ package cspro2sql.writer;
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -28,36 +31,56 @@ import java.util.List;
  */
 public class TerritoryWriter {
 
-    public static void write(List<Territory> territoryList, Territory territoryStructure, String schema, PrintStream ps) {
-        String key = "";
-        ps.println("CREATE TABLE IF NOT EXISTS " + schema + ".`territory`(");
-        for (TerritoryItem territoryItem : territoryStructure.getItemsList()) {
-            if (territoryItem.getName().contains("_NAME")) {
-                ps.println("`" + territoryItem.getName() + "` text,");
-            } else {
-                ps.println("`" + territoryItem.getName() + "` int(11) DEFAULT NULL,");
-                key += "`" + territoryItem.getName() + "`,";
-            }
-        }
-        ps.println("KEY `idx_territory`(" + removeLastChar(key) + ")");
-        ps.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-        ps.println();
+    private static final int COMMIT_SIZE = 100;
 
-        String insert = "";
-        for (Territory territory : territoryList) {
-            ps.println("INSERT INTO " + schema + ".`territory` VALUES(");
-            int counter = 1;
-            for (TerritoryItem territoryItem : territory.getItemsList()) {
-                if (counter % 2 == 0) {
-                    insert += "'" + territoryItem.getName() + "',";
+    public static void write(List<Territory> territoryList, Territory territoryStructure, String schema, PrintStream ps, Connection conn) throws SQLException {
+
+        try (Statement stmt = conn.createStatement()) {
+            
+            System.out.println("Creating territory table...");
+            
+            String createQuery = "";
+            String key = "";
+            createQuery += "CREATE TABLE IF NOT EXISTS " + schema + ".`territory`(\n";
+            for (TerritoryItem territoryItem : territoryStructure.getItemsList()) {
+                if (territoryItem.getName().contains("_NAME")) {
+                    createQuery += "`" + territoryItem.getName() + "` text,\n";
                 } else {
-                    insert += Integer.parseInt(territoryItem.getName()) + ",";
+                    createQuery += "`" + territoryItem.getName() + "` int(11) DEFAULT NULL,\n";
+                    key += "`" + territoryItem.getName() + "`,";
                 }
-                counter++;
-
             }
-            ps.println(removeLastChar(insert) + ");");
-            insert = "";
+            createQuery += "KEY `idx_territory`(" + removeLastChar(key) + ")\n";
+            createQuery += ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            stmt.executeUpdate(createQuery);
+            
+            System.out.println("Territory table successfully created");
+            System.out.println("Loading territory table [" + territoryList.size() + "]");
+
+            String insertQuery = "INSERT INTO " + schema + ".`territory` VALUES(";
+            String insertValues = "";
+            int rowCounter = 1;
+            for (Territory territory : territoryList) {
+                int counter = 1;
+                for (TerritoryItem territoryItem : territory.getItemsList()) {
+                    if (counter % 2 == 0) {
+                        insertValues += "\"" + territoryItem.getName() + "\",";
+                    } else {
+                        insertValues += Integer.parseInt(territoryItem.getName()) + ",";
+                    }
+                    counter++;
+                }
+                stmt.executeUpdate(insertQuery + removeLastChar(insertValues) + ")");
+                if (rowCounter % COMMIT_SIZE == 0) {
+                    System.out.print("+");
+                    conn.commit();
+                }
+                rowCounter++;
+                insertValues = "";
+            }
+            conn.commit();
+            System.out.println("");
+            System.out.println("Territory table successfully loaded!");
         }
 
     }
