@@ -77,10 +77,8 @@ public class TerritoryEngine {
             territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), dictionary);
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-                System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
                 ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
-                    System.out.println("Connection successful!");
                     connSrc.setAutoCommit(false);
                     TerritoryWriter.write(territoryList, territoryStructure, prop.getProperty("db.dest.schema"), connSrc);
                 }

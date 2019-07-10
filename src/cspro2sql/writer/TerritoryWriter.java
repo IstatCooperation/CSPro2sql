@@ -2,7 +2,6 @@ package cspro2sql.writer;
 
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
-import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -57,24 +56,27 @@ public class TerritoryWriter {
 
             String insertQuery = "INSERT INTO " + schema + ".`territory` VALUES(";
             String insertValues = "";
+            String territoryCode = "";
             int rowCounter = 1;
             for (Territory territory : territoryList) {
                 int counter = 1;
                 for (TerritoryItem territoryItem : territory.getItemsList()) {
-                    if (counter % 2 == 0) {
+                    if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
                         insertValues += "\"" + territoryItem.getName() + "\",";
                     } else {
                         insertValues += Integer.parseInt(territoryItem.getName()) + ",";
+                        territoryCode += territoryItem.getName();
                     }
                     counter++;
                 }
-                stmt.executeUpdate(insertQuery + removeLastChar(insertValues) + ")");
+                stmt.executeUpdate(insertQuery + insertValues + "\"" + territoryCode + "\")");
                 if (rowCounter % COMMIT_SIZE == 0) {
                     System.out.print("+");
                     conn.commit();
                 }
                 rowCounter++;
                 insertValues = "";
+                territoryCode = "";
             }
             conn.commit();
             System.out.println("");

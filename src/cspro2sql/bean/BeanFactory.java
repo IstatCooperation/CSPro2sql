@@ -39,8 +39,7 @@ public final class BeanFactory {
                 dictionary.setRecordTypeLen(Integer.parseInt(getValue(line)));
             } else if (line.startsWith(Dictionary.DICT_NOTE)) {
                 parseNote(dictionary, getValue(line));
-            } 
-            else if (line.isEmpty()) {
+            } else if (line.isEmpty()) {
                 break;
             }
         }
@@ -108,6 +107,9 @@ public final class BeanFactory {
             if (line.startsWith(Dictionary.DICT_LABEL)) {
                 valueSet.setLabel(getValue(line));
             } else if (line.startsWith(Dictionary.DICT_NAME)) {
+                if(getValue(line).contains(Dictionary.VALUE_MISSING) || getValue(line).contains(Dictionary.VALUE_SPECIAL)){
+                    return null;
+                }
                 valueSet.setName(getValue(line));
             } else if (line.startsWith(Dictionary.VALUE_LINK)) {
                 valueSet.setLink(getValue(line));

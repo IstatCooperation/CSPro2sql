@@ -84,21 +84,17 @@ public class LoaderEngine {
                 String srcDataTable = dictionary.getName();
 
                 //Connect to the source database
-                System.out.println("Connecting to " + prop.getProperty("db.source.uri").trim() + "/" + srcSchema);
                 ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                     connSrc.setReadOnly(true);
-                    System.out.println("Connection successful!");
                     
                     //Connect to the destination database
-                    System.out.println("Connecting to " + prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim());
                     if("sqlserver".equals(prop.getProperty("db.dest.type"))){
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                     }
                     ConnectionParams destConnParams = ConnectionParams.getDestParams(prop);
                     try (Connection connDst = DriverManager.getConnection(destConnParams.getUri(), destConnParams.getUsername(), destConnParams.getPassword())) {
                         connDst.setAutoCommit(false);
-                        System.out.println("Connection successful!");
 
                         DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
 

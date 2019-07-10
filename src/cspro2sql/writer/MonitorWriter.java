@@ -55,7 +55,7 @@ public class MonitorWriter {
         int[] ageRange = tm.getAgeRange();
 
         try {
-            tm.printTemplate("c_user", out);
+            tm.printTemplate("dashboard_user", out);
             tm.printTemplate("cspro2sql_report", out);
             tm.printTemplate("dashboard_info", out);
         } catch (IOException ex) {

@@ -52,11 +52,9 @@ public class UpdateEngine {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 
             //Connect to the destination database
-            System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
             ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
             try (Connection connDst = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                 connDst.setAutoCommit(false);
-                System.out.println("Connection successful!");
 
                 try (Statement readDst = connDst.createStatement()) {
                     try (Statement writeDst = connDst.createStatement()) {
