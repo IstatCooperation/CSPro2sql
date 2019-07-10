@@ -49,6 +49,15 @@ public class Main {
         CsPro2SqlOptions opts = getCommandLineOptions(args);
         boolean error = false;
         List<Dictionary> dictionaries;
+
+        if (opts.scanEngine) {
+            ScanEngine.execute(opts.prop);
+            return;
+        } else if (opts.testConnectionEngine) {
+            TestConnectionEngine.execute(opts.prop);
+            return;
+        } 
+
         try {
             dictionaries = DictionaryReader.parseDictionaries(opts.schema, opts.dictionary, opts.tablePrefix);
         } catch (Exception e) {
@@ -85,12 +94,8 @@ public class Main {
             error = !StatusEngine.execute(dictionaries, opts.prop);
         } else if (opts.linkageEngine) {
             //error = !LinkageEngine.execute(dictionary, pesDictionary, opts.prop, opts.ps);
-        } else if (opts.testConnectionEngine) {
-            error = !TestConnectionEngine.execute(opts.prop);
         } else if (opts.territoryEngine) {
             error = !TerritoryEngine.execute(dictionaries, opts.prop);
-        } else if (opts.scanEngine) {
-            error = !ScanEngine.execute(opts.prop);
         } else if (opts.loadAndUpdate) {
             while (true) {
                 try {
@@ -147,7 +152,6 @@ public class Main {
             if (cmd.hasOption("e")) {
 
                 //[TO DO] Check if engine type exists
-                
                 //Questo controllo sembra non funzionare
                 if (!cmd.hasOption("p")) {
                     opts.printError("The properties file is mandatory!");
@@ -315,7 +319,7 @@ public class Main {
         }
 
         void printError(String errMessage) {
-            
+
             if (errMessage != null) {
                 System.err.println("\n[ERROR] " + errMessage);
                 System.err.println("CsPro2Sql -h for usage \n");

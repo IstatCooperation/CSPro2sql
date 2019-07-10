@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS @SCHEMA.`c_user`;
 CREATE TABLE IF NOT EXISTS @SCHEMA.`c_user` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `FIRSTNAME` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -12,9 +13,9 @@ CREATE TABLE IF NOT EXISTS @SCHEMA.`c_user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO @SCHEMA.`c_user` (FIRSTNAME, LASTNAME, EMAIL, PASSWORD, ROLE)
-  VALUES ('Dashboard', 'Admin', 'admin@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'ADMIN');
+  VALUES ('Dashboard', 'Admin', 'admin@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'ROLE_ADMIN');
 INSERT INTO @SCHEMA.`c_user` (FIRSTNAME, LASTNAME, EMAIL, PASSWORD, ROLE)
-  VALUES ('Dashboard', 'Progress', 'progress@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'PROGRESS');
+  VALUES ('Dashboard', 'Progress', 'progress@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'ROLE_PROGRESS');
 INSERT INTO @SCHEMA.`c_user` (FIRSTNAME, LASTNAME, EMAIL, PASSWORD, ROLE)
-  VALUES ('Dashboard', 'Analyst', 'analyst@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'ANALYST');
+  VALUES ('Dashboard', 'Analyst', 'analyst@dashboard.it', '$2a$10$Yq.aC1NrfpC/grRBlc8dU.QgWG4bMvj3goJayS4DwypWXcrrHe756', 'ROLE_ANALYST');
 

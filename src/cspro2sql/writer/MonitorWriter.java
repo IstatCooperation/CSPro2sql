@@ -72,24 +72,24 @@ public class MonitorWriter {
             return false;
         }
 
-        if (!territory.isEmpty()) {
-            out.println("CREATE TABLE IF NOT EXISTS `territory` (");
-            String idx = "";
-            for (int i = 0; i < territory.size(); i++) {
-                TerritoryItem territoryItem = territory.get(i);
-                String name = territoryItem.getItemName();
-                out.println("    `" + name + "_NAME` text COLLATE utf8mb4_unicode_ci,");
-                out.println("    `" + name + "` int(11) DEFAULT NULL,");
-                if (i > 0) {
-                    idx += ",";
-                }
-                idx += "`" + name + "`";
-            }
-            out.println("    `TERRITORY_CODE` text COLLATE utf8mb4_unicode_ci,");
-            out.println("    KEY `idx_territory` (" + idx + ")");
-            out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
-            out.println();
-        }
+//        if (!territory.isEmpty()) {
+//            out.println("CREATE TABLE IF NOT EXISTS `territory` (");
+//            String idx = "";
+//            for (int i = 0; i < territory.size(); i++) {
+//                TerritoryItem territoryItem = territory.get(i);
+//                String name = territoryItem.getItemName();
+//                out.println("    `" + name + "_NAME` text COLLATE utf8mb4_unicode_ci,");
+//                out.println("    `" + name + "` int(11) DEFAULT NULL,");
+//                if (i > 0) {
+//                    idx += ",";
+//                }
+//                idx += "`" + name + "`";
+//            }
+//            out.println("    `TERRITORY_CODE` text COLLATE utf8mb4_unicode_ci,");
+//            out.println("    KEY `idx_territory` (" + idx + ")");
+//            out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+//            out.println();
+//        }
 
         if (!territory.isEmpty()) {
             TerritoryItem territoryItem = territory.getFirst();

@@ -47,6 +47,7 @@ public class TerritoryWriter {
                 createQuery += "`" + territoryItem.getItem().getName() + "_NAME` text,\n";
                 key += "`" + territoryItem.getItem().getName() + "`,";
             }
+            createQuery += "`TERRITORY_CODE` text COLLATE utf8mb4_unicode_ci,";
             createQuery += "KEY `idx_territory`(" + removeLastChar(key) + ")\n";
             createQuery += ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
             stmt.executeUpdate(createQuery);

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS @SCHEMA.`cspro2sql_report`;
 CREATE TABLE IF NOT EXISTS @SCHEMA.`cspro2sql_report` (
   `NAME` varchar(256) NOT NULL UNIQUE,
   `LIST_ORDER` int(11) NOT NULL,
