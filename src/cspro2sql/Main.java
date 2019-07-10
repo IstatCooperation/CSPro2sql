@@ -90,7 +90,7 @@ public class Main {
         } else if (opts.territoryEngine) {
             error = !TerritoryEngine.execute(dictionaries, opts.prop);
         } else if (opts.scanEngine) {
-            error = !ScanEngine.execute(dictionaries, opts.prop);
+            error = !ScanEngine.execute(opts.prop);
         } else if (opts.loadAndUpdate) {
             while (true) {
                 try {
@@ -281,6 +281,7 @@ public class Main {
 
             //System.out.println("CsPro2Sql - version " + VERSION + "\n");
             formatter.printHelp("\n\n"
+                    + "CsPro2Sql -e scan        -p PROPERTIES_FILE\n"
                     + "CsPro2Sql -e schema      -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]\n"
                     + "CsPro2Sql -e loader      -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE] [-d DELAY]\n"
                     + "CsPro2Sql -e monitor     -p PROPERTIES_FILE [-o OUTPUT_FILE]\n"

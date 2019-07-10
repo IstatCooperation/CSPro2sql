@@ -33,35 +33,7 @@ public class ScanEngine {
 
         try (InputStream in = LoaderEngine.class.getResourceAsStream("/database.properties")) {
             prop.load(in);
-            boolean isLocalFile = false;
-            String[] dicts = prop.getProperty("dictionary").split(",");
-            System.out.println("Starting property file scan...");
-            System.out.println("[Dictionaries]");
-            for (int i = 0; i < dicts.length; i++) {
-                isLocalFile = new File(dicts[i].trim()).exists();
-                if (isLocalFile) {
-                    System.out.println("  File " + dicts[i].trim() + ": OK");
-                } else {
-                    System.out.println("  File " + dicts[i].trim() + ": ERROR (file not available)");
-                }
-            }
-            System.out.println("[Territory]");
-            String territory = prop.getProperty("territory");
-            if (territory != null && !territory.isEmpty()) {
-                isLocalFile = new File(territory.trim()).exists();
-                if (isLocalFile) {
-                    System.out.println("  File " + territory.trim() + ": OK");
-                } else {
-                    System.out.println("  File " + territory.trim() + ": ERROR (file not available)");
-                }
-            } else{
-                 System.out.println("Territory file not specified!");
-            }
-            
-            System.out.println("[Database]");
-            TestConnectionEngine.execute(prop);
-            
-            System.out.println("...scanning completed!");
+            execute(prop);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "Cannot read properties file", ex);
         } catch (Exception ex) {
@@ -69,8 +41,37 @@ public class ScanEngine {
         }
     }
 
-    public static boolean execute(List<Dictionary> dictionaries, Properties prop) {
+    public static boolean execute(Properties prop) {
 
+        boolean isLocalFile;
+        String[] dicts = prop.getProperty("dictionary").split(",");
+        System.out.println("Starting property file scan...");
+        System.out.println("[Dictionaries]");
+        for (int i = 0; i < dicts.length; i++) {
+            isLocalFile = new File(dicts[i].trim()).exists();
+            if (isLocalFile) {
+                System.out.println("- File " + dicts[i].trim() + ": OK");
+            } else {
+                System.out.println("- File " + dicts[i].trim() + ": ERROR (file not available)");
+            }
+        }
+        System.out.println("[Territory]");
+        String territory = prop.getProperty("territory");
+        if (territory != null && !territory.isEmpty()) {
+            isLocalFile = new File(territory.trim()).exists();
+            if (isLocalFile) {
+                System.out.println("- File " + territory.trim() + ": OK");
+            } else {
+                System.out.println("- File " + territory.trim() + ": ERROR (file not available)");
+            }
+        } else {
+            System.out.println("Territory file not specified!");
+        }
+
+        System.out.println("[Database]");
+        TestConnectionEngine.execute(prop);
+
+        System.out.println("...scanning completed!");
         return true;
     }
 
