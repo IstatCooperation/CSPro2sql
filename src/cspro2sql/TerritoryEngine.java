@@ -1,16 +1,16 @@
 package cspro2sql;
 
 import cspro2sql.bean.ConnectionParams;
+import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Territory;
+import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.TerritoryReader;
 import cspro2sql.writer.TerritoryWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -45,44 +45,51 @@ public class TerritoryEngine {
 
         try (InputStream in = LoaderEngine.class.getResourceAsStream("/database.properties")) {
             prop.load(in);
+
+            List<Dictionary> dictionaries = DictionaryReader.parseDictionaries(
+                    prop.getProperty("db.dest.schema"),
+                    prop.getProperty("dictionary"),
+                    prop.getProperty("dictionary.prefix"));
+            execute(dictionaries, prop);
+
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "Cannot read properties file", ex);
-            return;
-        }
-        try {
-            execute(prop, System.out);
         } catch (Exception ex) {
-            System.exit(1);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
-
     }
 
-    public static boolean execute(Properties prop, PrintStream out) {
+    public static boolean execute(List<Dictionary> dictionaries, Properties prop) {
+        //Parse dictionary file
+        for (Dictionary dictionary : dictionaries) {
+            if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+                return execute(dictionary, prop);
+            }
+        }
+        return false;
+    }
+
+    public static boolean execute(Dictionary dictionary, Properties prop) {
         List<Territory> territoryList;
         Territory territoryStructure;
-        if (prop.getProperty("territory.structure") != null && !prop.getProperty("territory.structure").isEmpty()) {
+        try {
+            territoryStructure = TerritoryReader.parseTerritoryStructure(dictionary);
+            territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), dictionary);
             try {
-                territoryStructure = TerritoryReader.parseTerritoryStructure(prop.getProperty("territory.structure"));
-                territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), prop.getProperty("territory.structure"));
-                try {
-                    Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-                    System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
-                    ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
-                    try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
-                        System.out.println("Connection successful!");
-                        connSrc.setAutoCommit(false);
-                        TerritoryWriter.write(territoryList, territoryStructure, prop.getProperty("db.dest.schema"), System.out, connSrc);
-                    }
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
-                    System.out.println("Database exception (" + ex.getMessage() + ")");
-                    return false;
+                Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+                System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
+                ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
+                try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
+                    System.out.println("Connection successful!");
+                    connSrc.setAutoCommit(false);
+                    TerritoryWriter.write(territoryList, territoryStructure, prop.getProperty("db.dest.schema"), connSrc);
                 }
-            } catch (Exception ex) {
-                LOGGER.log(Level.SEVERE, "Error parsing territory file", ex);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+                System.out.println("Database exception (" + ex.getMessage() + ")");
                 return false;
             }
-        } else {
-            System.out.println("Territory properties are missing in properties file!");
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error parsing territory file", ex);
             return false;
         }
 

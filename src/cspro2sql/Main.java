@@ -88,7 +88,7 @@ public class Main {
         } else if (opts.testConnectionEngine) {
             error = !TestConnectionEngine.execute(opts.prop);
         } else if (opts.territoryEngine) {
-            error = !TerritoryEngine.execute(opts.prop, opts.ps);
+            error = !TerritoryEngine.execute(dictionaries, opts.prop);
         } else if (opts.loadAndUpdate) {
             while (true) {
                 try {

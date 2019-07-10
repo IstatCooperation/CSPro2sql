@@ -33,27 +33,24 @@ public class TerritoryWriter {
 
     private static final int COMMIT_SIZE = 100;
 
-    public static void write(List<Territory> territoryList, Territory territoryStructure, String schema, PrintStream ps, Connection conn) throws SQLException {
+    public static void write(List<Territory> territoryList, Territory territoryStructure, String schema, Connection conn) throws SQLException {
 
         try (Statement stmt = conn.createStatement()) {
-            
+
             System.out.println("Creating territory table...");
-            
+
             String createQuery = "";
             String key = "";
             createQuery += "CREATE TABLE IF NOT EXISTS " + schema + ".`territory`(\n";
             for (TerritoryItem territoryItem : territoryStructure.getItemsList()) {
-                if (territoryItem.getName().contains("_NAME")) {
-                    createQuery += "`" + territoryItem.getName() + "` text,\n";
-                } else {
-                    createQuery += "`" + territoryItem.getName() + "` int(11) DEFAULT NULL,\n";
-                    key += "`" + territoryItem.getName() + "`,";
-                }
+                createQuery += "`" + territoryItem.getItem().getName() + "` int(11) DEFAULT NULL,\n";
+                createQuery += "`" + territoryItem.getItem().getName() + "_NAME` text,\n";
+                key += "`" + territoryItem.getItem().getName() + "`,";
             }
             createQuery += "KEY `idx_territory`(" + removeLastChar(key) + ")\n";
             createQuery += ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
             stmt.executeUpdate(createQuery);
-            
+
             System.out.println("Territory table successfully created");
             System.out.println("Loading territory table [" + territoryList.size() + "]");
 

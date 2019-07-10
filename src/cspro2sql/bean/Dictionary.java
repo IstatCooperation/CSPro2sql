@@ -105,7 +105,7 @@ public final class Dictionary extends Taggable {
     public static final Tag TAG_MIDDLENAME = new Tag("#middlename");
     public static final Tag TAG_LASTNAME = new Tag("#lastname");
     public static final Tag TAG_TERRITORY = new Tag("#territory");
-    public static final Tag TAG_FIELDWORK = new Tag("#fieldwork");
+    public static final Tag TAG_HOUSEHOLD = new Tag("#household");
     public static final Tag TAG_LISTING = new Tag("#listing");
     public static final Tag TAG_EXPECTED = new Tag("#expected");
     public static final Tag TAG_EXPECTED_QUESTIONNAIRES = new Tag("#expectedQuestionnaires");

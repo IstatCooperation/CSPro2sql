@@ -51,17 +51,17 @@ public class MonitorEngine {
     }
 
     static boolean execute(List<Dictionary> dictionaries, PrintStream out) {
-        TemplateManager tmFieldwork = null, tmListing = null, tmExpected = null;
+        TemplateManager tmHousehold = null, tmListing = null, tmExpected = null;
         for (Dictionary dictionary : dictionaries) {
-            if (dictionary.hasTag(Dictionary.TAG_FIELDWORK)) {
-                tmFieldwork = new TemplateManager(dictionary);
+            if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+                tmHousehold = new TemplateManager(dictionary);
             } else if (dictionary.hasTag(Dictionary.TAG_LISTING)) {
                 tmListing = new TemplateManager(dictionary);
             } else if (dictionary.hasTag(Dictionary.TAG_EXPECTED)) {
                 tmExpected = new TemplateManager(dictionary);
             }
         }
-        return MonitorWriter.write(tmFieldwork, tmListing, tmExpected, out);
+        return MonitorWriter.write(tmHousehold, tmListing, tmExpected, out);
     }
 
 }

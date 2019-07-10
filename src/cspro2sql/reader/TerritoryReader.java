@@ -1,5 +1,6 @@
 package cspro2sql.reader;
 
+import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
@@ -35,32 +36,28 @@ import java.util.List;
  */
 public class TerritoryReader {
 
-    public static List<Territory> parseTerritory(String territoryFile, String territoryHierarchy) throws Exception {
-        Territory territoryStructure;
+    public static List<Territory> parseTerritory(String territoryFile, Dictionary dictionary) throws Exception {
         List<Territory> territoryList = new ArrayList<>();
+        Territory territoryStructure = parseTerritoryStructure(dictionary);
 
-        if (territoryHierarchy != null && !territoryHierarchy.isEmpty()) {
-            territoryStructure = parseTerritoryStructure(territoryHierarchy);
-
-            if (territoryFile != null && !territoryFile.isEmpty()) {
-                try {
-                    territoryList = read(territoryFile, territoryStructure);
-                } catch (IOException ex) {
-                    throw new Exception("Impossible to read territory file " + territoryFile + " (" + ex.getMessage() + ")", ex);
-                }
+        if (territoryFile != null && !territoryFile.isEmpty()) {
+            try {
+                territoryList = read(territoryFile, territoryStructure);
+            } catch (IOException ex) {
+                throw new Exception("Impossible to read territory file " + territoryFile + " (" + ex.getMessage() + ")", ex);
             }
         }
 
         return territoryList;
     }
 
-    public static Territory parseTerritoryStructure(String territoryHierarchy) {
+    public static Territory parseTerritoryStructure(Dictionary dictionary) {
         Territory territory = new Territory();
-        String[] territoryElements = territoryHierarchy.split(",");
-
-        for (String element : territoryElements) {
-            territory.addItem(element);
-            territory.addItem(element + "_NAME");
+        if (dictionary.hasTagged(Dictionary.TAG_TERRITORY)) {
+            Iterable<Item> territories = dictionary.getTaggedItems(Dictionary.TAG_TERRITORY);
+            for (Item terrItem : territories) {
+                territory.addItem(terrItem);
+            }
         }
 
         return territory;
@@ -109,8 +106,8 @@ public class TerritoryReader {
     }
 
     private static boolean checkColumnName(String colName, List<TerritoryItem> items) {
-        for (TerritoryItem item : items) {
-            if (item.getName().equals(colName)) {
+        for (TerritoryItem terrItem : items) {
+            if (terrItem.getItem().getName().equals(colName) || terrItem.getItem().getName().equals(colName.replace("_NAME", ""))) {
                 return true;
             }
         }
