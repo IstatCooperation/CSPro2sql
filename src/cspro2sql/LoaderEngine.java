@@ -54,7 +54,7 @@ public class LoaderEngine {
 
     public static void main(String[] args) {
         Properties prop = new Properties();
-        
+
         try (InputStream in = LoaderEngine.class.getResourceAsStream("/database.properties")) {
             prop.load(in);
         } catch (IOException ex) {
@@ -66,7 +66,7 @@ public class LoaderEngine {
                     prop.getProperty("db.dest.schema").trim(),
                     prop.getProperty("dictionary").trim(),
                     prop.getProperty("dictionary.prefix").trim());
-            
+
             execute(dictionaries, prop, true, false, false, true, false, null);
         } catch (Exception ex) {
             System.exit(1);
@@ -87,9 +87,9 @@ public class LoaderEngine {
                 ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                     connSrc.setReadOnly(true);
-                    
+
                     //Connect to the destination database
-                    if("sqlserver".equals(prop.getProperty("db.dest.type"))){
+                    if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                     }
                     ConnectionParams destConnParams = ConnectionParams.getDestParams(prop);
@@ -98,6 +98,9 @@ public class LoaderEngine {
 
                         DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
 
+                        //Store meta data
+                        dictionaryQuery.insertUnits(dictionary);
+                        
                         DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo(srcDataTable);
                         int lastRevision = dictionaryInfo.getRevision();
 

@@ -1,7 +1,10 @@
 package cspro2sql.sql;
 
+import cspro2sql.bean.Concepts;
+import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.DictionaryInfo;
 import cspro2sql.bean.Questionnaire;
+import cspro2sql.bean.Record;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,6 +42,10 @@ public class DictionaryQuery {
     private static final String DICTIONARY_UPDATE_NEXT_REVISION = "update CSPRO2SQL_DICTIONARY set NEXT_REVISION = ? where ID = ?";
     private static final String DICTIONARY_UPDATE_LOADED = "update CSPRO2SQL_DICTIONARY set TOTAL = ?, LOADED = ?, DELETED = ?, ERRORS = ?, LAST_GUID = ? where ID = ?";
     private static final String DICTIONARY_INSERT_ERROR = "insert into CSPRO2SQL_ERROR (DICTIONARY, ERROR, DATE, CSPRO_GUID, QUESTIONNAIRE, SQL_SCRIPT) values (?,?,?,?,?,?)";
+    private static final String DICTIONARY_SELECT_MAX_UNIT = "SELECT COALESCE(MAX(ID), 0) as MAX_VAL FROM DASHBOARD_META_UNIT";
+    private static final String DICTIONARY_SELECT_MAX_VARIABLE = "SELECT COALESCE(MAX(ID), 0) as MAX_VAL FROM DASHBOARD_META_VARIABLE";
+    private static final String DICTIONARY_INSERT_UNIT = "insert into DASHBOARD_META_UNIT (ID, NAME, NOTE, PARENT_ID, CONCEPT_ID) values (?,?,?,?,?)";
+    private static final String DICTIONARY_INSERT_VARIABLE = "insert into DASHBOARD_META_VARIABLE (ID, NAME, NOTE, TYPE, ORDER, UNIT_ID, CONCEPT_ID) values (?,?,?,?,?,?,?)";
 
     private final PreparedStatement selectInfoById;
     private final PreparedStatement selectInfoByName;
@@ -49,6 +56,10 @@ public class DictionaryQuery {
     private final PreparedStatement updateNextRevision;
     private final PreparedStatement updateLoaded;
     private final PreparedStatement insertError;
+    private final PreparedStatement selectMaxUnit;
+    private final PreparedStatement selectMaxVariable;
+    private final PreparedStatement insertUnit;
+    private final PreparedStatement insertVariable;
 
     public DictionaryQuery(Connection conn) throws SQLException {
         selectInfoById = conn.prepareStatement(DICTIONARY_SELECT_INFO_BY_ID);
@@ -60,6 +71,10 @@ public class DictionaryQuery {
         updateNextRevision = conn.prepareStatement(DICTIONARY_UPDATE_NEXT_REVISION);
         updateLoaded = conn.prepareStatement(DICTIONARY_UPDATE_LOADED);
         insertError = conn.prepareStatement(DICTIONARY_INSERT_ERROR);
+        selectMaxUnit = conn.prepareStatement(DICTIONARY_SELECT_MAX_UNIT);
+        selectMaxVariable = conn.prepareStatement(DICTIONARY_SELECT_MAX_VARIABLE);
+        insertUnit = conn.prepareStatement(DICTIONARY_INSERT_UNIT);
+        insertVariable = conn.prepareStatement(DICTIONARY_INSERT_VARIABLE);
     }
 
     public DictionaryInfo getDictionaryInfo(int dictionaryId) {
@@ -192,6 +207,57 @@ public class DictionaryQuery {
         stmt.setInt(1, dictionaryId);
         stmt.executeUpdate();
         stmt.getConnection().commit();
+    }
+
+    public boolean insertUnits(Dictionary dictionary) {
+        int recordId;
+        int mainRecordId = -1;
+        Integer conceptId = null;
+        try (ResultSet result = selectMaxUnit.executeQuery()) {
+            result.next();
+            recordId = result.getInt("MAX_VAL") + 1;
+            for (Record record : dictionary.getRecords()) {
+                insertUnit.setInt(1, recordId);
+                insertUnit.setString(2, record.getName());
+                insertUnit.setString(3, "");
+                if (record.isMainRecord()) {
+                    mainRecordId = recordId;
+                    insertUnit.setNull(4, java.sql.Types.INTEGER);
+                    conceptId = Concepts.getId(dictionary);
+                } else {
+                    insertUnit.setInt(4, mainRecordId);
+                }
+                if (conceptId != null) {
+                    insertUnit.setInt(5, conceptId);
+                } else {
+                    insertUnit.setNull(5, java.sql.Types.INTEGER);
+                }
+                insertUnit.executeUpdate();
+                recordId++;
+                conceptId = null;
+            }
+            insertUnit.getConnection().commit();
+        } catch (SQLException ex) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean insertVariable(DictionaryInfo info) {
+        try {
+            updateLoaded.setInt(1, info.getTotal());
+            updateLoaded.setInt(2, info.getLoaded());
+            updateLoaded.setInt(3, info.getDeleted());
+            updateLoaded.setInt(4, info.getErrors());
+            updateLoaded.setBytes(5, info.getLastGuid());
+            updateLoaded.setInt(6, info.getId());
+            updateLoaded.executeUpdate();
+            updateLoaded.getConnection().commit();
+        } catch (SQLException ex) {
+            return false;
+        }
+        return true;
     }
 
 }

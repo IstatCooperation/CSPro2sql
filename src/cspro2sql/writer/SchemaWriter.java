@@ -44,7 +44,11 @@ public class SchemaWriter {
 
         try {
             tm.printTemplate("cspro2sql_dictionary", ps);
-            tm.printTemplate("cspro2sql_error", ps);
+            tm.printTemplate("cspro2sql_error", ps); 
+            tm.printTemplate("dashboard_meta_concept", ps);
+            tm.printTemplate("dashboard_meta_unit", ps);
+            tm.printTemplate("dashboard_meta_variable", ps);
+            
         } catch (IOException ex) {
             return;
         }
