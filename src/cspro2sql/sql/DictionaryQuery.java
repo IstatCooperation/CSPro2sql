@@ -11,8 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Copyright 2017 ISTAT
@@ -49,7 +47,7 @@ public class DictionaryQuery {
     private static final String DICTIONARY_SELECT_MAX_VARIABLE = "SELECT COALESCE(MAX(ID), 0) as MAX_VAL FROM DASHBOARD_META_VARIABLE";
     private static final String DICTIONARY_SELECT_UNIT_BY_NAME = "SELECT ID FROM DASHBOARD_META_UNIT WHERE NAME = ?";
     private static final String DICTIONARY_INSERT_UNIT = "insert into DASHBOARD_META_UNIT (`ID`, `NAME`, `NOTE`, `PARENT_ID`, `CONCEPT_ID`) values (?,?,?,?,?)";
-    private static final String DICTIONARY_INSERT_VARIABLE = "insert into DASHBOARD_META_VARIABLE (`ID`, `NAME`, `NOTE`, `TYPE`, `ORDER`, `UNIT_ID`, `CONCEPT_ID`) values (?,?,?,?,?,?,?)";
+    private static final String DICTIONARY_INSERT_VARIABLE = "insert into DASHBOARD_META_VARIABLE (`ID`, `NAME`, `NOTE`, `TYPE`, `VAR_ORDER`, `UNIT_ID`, `CONCEPT_ID`) values (?,?,?,?,?,?,?)";
 
     private final PreparedStatement selectInfoById;
     private final PreparedStatement selectInfoByName;
@@ -252,6 +250,7 @@ public class DictionaryQuery {
 
     public boolean insertVariables(Dictionary dictionary) {
         int recordId;
+        Integer order = 1;
         Integer unitId;
         Integer conceptId;
         try (ResultSet result = selectMaxVariable.executeQuery()) {
@@ -263,7 +262,12 @@ public class DictionaryQuery {
                     insertVariable.setString(2, item.getName());
                     insertVariable.setString(3, "");
                     insertVariable.setString(4, item.getDataType());
-                    insertVariable.setNull(5, java.sql.Types.INTEGER);
+                    if (item.hasTag(Dictionary.TAG_TERRITORY)) {
+                        insertVariable.setInt(5, order);
+                        order++;
+                    } else{
+                        insertVariable.setNull(5, java.sql.Types.INTEGER);
+                    }
                     unitId = getUnitId(item.getRecord().getName());
                     if (unitId != null) {
                         insertVariable.setInt(6, unitId);
@@ -279,6 +283,7 @@ public class DictionaryQuery {
                     insertVariable.executeUpdate();
                     recordId++;
                 }
+                order = 1;
                 insertVariable.getConnection().commit();
             }
             insertVariable.getConnection().commit();
