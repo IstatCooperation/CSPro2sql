@@ -100,6 +100,7 @@ public class LoaderEngine {
 
                         //Store meta data
                         dictionaryQuery.insertUnits(dictionary);
+                        dictionaryQuery.insertVariables(dictionary);
                         
                         DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo(srcDataTable);
                         int lastRevision = dictionaryInfo.getRevision();

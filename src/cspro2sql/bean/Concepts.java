@@ -81,22 +81,27 @@ public class Concepts {
             return EXPECTED_ID;
         }
         return null;
-
     }
-
-    public static Integer getId(Iterable<Tag> tags) {
-
-        Iterator<Tag> it = tags.iterator();
-        while (it.hasNext()) {
-            Tag tag = it.next();
-            for (Map.Entry<Integer, String> element : conceptMap.entrySet()) {
-                if (element.getValue().equals(tag.getName().replace("#", ""))) {
-                    return element.getKey();
-                }
-            }
+    
+    public static Integer getId(Record record) {
+        if (record.hasTag(Dictionary.TAG_INDIVIDUAL)) {
+            return INDIVIDUAL_ID;
         }
-
         return null;
     }
+    
 
+    public static Integer getId(Item item) {
+        if (item.hasTag(Dictionary.TAG_TERRITORY)) {
+            return TERRITORY_ID;
+        } else if (item.hasTag(Dictionary.TAG_AGE)) {
+            return AGE_ID;
+        } else if (item.hasTag(Dictionary.TAG_SEX)) {
+            return SEX_ID;
+        } else if (item.hasTag(Dictionary.TAG_RELIGION)) {
+            return RELIGION_ID;
+        }
+        
+        return null;
+    }
 }
