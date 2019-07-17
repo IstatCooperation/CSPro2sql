@@ -48,6 +48,8 @@ public class DictionaryQuery {
     private static final String DICTIONARY_SELECT_UNIT_BY_NAME = "SELECT ID FROM DASHBOARD_META_UNIT WHERE NAME = ?";
     private static final String DICTIONARY_INSERT_UNIT = "insert into DASHBOARD_META_UNIT (`ID`, `NAME`, `NOTE`, `PARENT_ID`, `CONCEPT_ID`) values (?,?,?,?,?)";
     private static final String DICTIONARY_INSERT_VARIABLE = "insert into DASHBOARD_META_VARIABLE (`ID`, `NAME`, `NOTE`, `TYPE`, `VAR_ORDER`, `UNIT_ID`, `CONCEPT_ID`) values (?,?,?,?,?,?,?)";
+    private static final String DICTIONARY_TRUNCATE_UNIT = "truncate table DASHBOARD_META_UNIT";
+    private static final String DICTIONARY_TRUNCATE_VARIABLE = "truncate table DASHBOARD_META_VARIABLE";
 
     private final PreparedStatement selectInfoById;
     private final PreparedStatement selectInfoByName;
@@ -63,6 +65,8 @@ public class DictionaryQuery {
     private final PreparedStatement selectUnitByName;
     private final PreparedStatement insertUnit;
     private final PreparedStatement insertVariable;
+    private final PreparedStatement truncateUnit;
+    private final PreparedStatement truncateVariable;
 
     public DictionaryQuery(Connection conn) throws SQLException {
         selectInfoById = conn.prepareStatement(DICTIONARY_SELECT_INFO_BY_ID);
@@ -79,6 +83,8 @@ public class DictionaryQuery {
         selectUnitByName = conn.prepareStatement(DICTIONARY_SELECT_UNIT_BY_NAME);
         insertUnit = conn.prepareStatement(DICTIONARY_INSERT_UNIT);
         insertVariable = conn.prepareStatement(DICTIONARY_INSERT_VARIABLE);
+        truncateUnit = conn.prepareStatement(DICTIONARY_TRUNCATE_UNIT);
+        truncateVariable = conn.prepareStatement(DICTIONARY_TRUNCATE_VARIABLE);
     }
 
     public DictionaryInfo getDictionaryInfo(int dictionaryId) {
@@ -217,34 +223,35 @@ public class DictionaryQuery {
         int recordId;
         int mainRecordId = -1;
         Integer conceptId;
-        try (ResultSet result = selectMaxUnit.executeQuery()) {
-            result.next();
-            recordId = result.getInt("MAX_VAL") + 1;
-            for (Record record : dictionary.getRecords()) {
-                insertUnit.setInt(1, recordId);
-                insertUnit.setString(2, record.getName());
-                insertUnit.setString(3, "");
-                if (record.isMainRecord()) {
-                    mainRecordId = recordId;
-                    insertUnit.setNull(4, java.sql.Types.INTEGER);
-                    conceptId = Concepts.getId(dictionary);
-                } else {
-                    conceptId = Concepts.getId(record);
-                    insertUnit.setInt(4, mainRecordId);
+        if (truncateUnit()) {
+            try (ResultSet result = selectMaxUnit.executeQuery()) {
+                result.next();
+                recordId = result.getInt("MAX_VAL") + 1;
+                for (Record record : dictionary.getRecords()) {
+                    insertUnit.setInt(1, recordId);
+                    insertUnit.setString(2, record.getName());
+                    insertUnit.setString(3, "");
+                    if (record.isMainRecord()) {
+                        mainRecordId = recordId;
+                        insertUnit.setNull(4, java.sql.Types.INTEGER);
+                        conceptId = Concepts.getId(dictionary);
+                    } else {
+                        conceptId = Concepts.getId(record);
+                        insertUnit.setInt(4, mainRecordId);
+                    }
+                    if (conceptId != null) {
+                        insertUnit.setInt(5, conceptId);
+                    } else {
+                        insertUnit.setNull(5, java.sql.Types.INTEGER);
+                    }
+                    insertUnit.executeUpdate();
+                    recordId++;
                 }
-                if (conceptId != null) {
-                    insertUnit.setInt(5, conceptId);
-                } else {
-                    insertUnit.setNull(5, java.sql.Types.INTEGER);
-                }
-                insertUnit.executeUpdate();
-                recordId++;
+                insertUnit.getConnection().commit();
+            } catch (SQLException ex) {
+                return false;
             }
-            insertUnit.getConnection().commit();
-        } catch (SQLException ex) {
-            return false;
         }
-
         return true;
     }
 
@@ -253,44 +260,45 @@ public class DictionaryQuery {
         Integer order = 1;
         Integer unitId;
         Integer conceptId;
-        try (ResultSet result = selectMaxVariable.executeQuery()) {
-            result.next();
-            recordId = result.getInt("MAX_VAL") + 1;
-            for (Record record : dictionary.getRecords()) {
-                for (Item item : record.getItems()) {
-                    insertVariable.setInt(1, recordId);
-                    insertVariable.setString(2, item.getName());
-                    insertVariable.setString(3, "");
-                    insertVariable.setString(4, item.getDataType());
-                    if (item.hasTag(Dictionary.TAG_TERRITORY)) {
-                        insertVariable.setInt(5, order);
-                        order++;
-                    } else{
-                        insertVariable.setNull(5, java.sql.Types.INTEGER);
+        if (truncateVariable()) {
+            try (ResultSet result = selectMaxVariable.executeQuery()) {
+                result.next();
+                recordId = result.getInt("MAX_VAL") + 1;
+                for (Record record : dictionary.getRecords()) {
+                    for (Item item : record.getItems()) {
+                        insertVariable.setInt(1, recordId);
+                        insertVariable.setString(2, item.getName());
+                        insertVariable.setString(3, "");
+                        insertVariable.setString(4, item.getDataType());
+                        if (item.hasTag(Dictionary.TAG_TERRITORY)) {
+                            insertVariable.setInt(5, order);
+                            order++;
+                        } else {
+                            insertVariable.setNull(5, java.sql.Types.INTEGER);
+                        }
+                        unitId = getUnitId(item.getRecord().getName());
+                        if (unitId != null) {
+                            insertVariable.setInt(6, unitId);
+                        } else {
+                            insertVariable.setNull(6, java.sql.Types.INTEGER);
+                        }
+                        conceptId = Concepts.getId(item);
+                        if (conceptId != null) {
+                            insertVariable.setInt(7, conceptId);
+                        } else {
+                            insertVariable.setNull(7, java.sql.Types.INTEGER);
+                        }
+                        insertVariable.executeUpdate();
+                        recordId++;
                     }
-                    unitId = getUnitId(item.getRecord().getName());
-                    if (unitId != null) {
-                        insertVariable.setInt(6, unitId);
-                    } else {
-                        insertVariable.setNull(6, java.sql.Types.INTEGER);
-                    }
-                    conceptId = Concepts.getId(item);
-                    if (conceptId != null) {
-                        insertVariable.setInt(7, conceptId);
-                    } else {
-                        insertVariable.setNull(7, java.sql.Types.INTEGER);
-                    }
-                    insertVariable.executeUpdate();
-                    recordId++;
+                    order = 1;
+                    insertVariable.getConnection().commit();
                 }
-                order = 1;
                 insertVariable.getConnection().commit();
+            } catch (SQLException ex) {
+                return false;
             }
-            insertVariable.getConnection().commit();
-        } catch (SQLException ex) {
-            return false;
         }
-
         return true;
     }
 
@@ -305,6 +313,31 @@ public class DictionaryQuery {
             return null;
         }
         return unitId;
+    }
+
+    private boolean truncateUnit() {
+        try {
+            truncateUnit.executeQuery("SET foreign_key_checks=0");
+            truncateUnit.executeUpdate();
+            truncateUnit.executeQuery("SET foreign_key_checks=1");
+            truncateUnit.getConnection().commit();
+        } catch (SQLException ex) {
+            return false;
+        }
+        return true;
+
+    }
+
+    private boolean truncateVariable() {
+        try {
+            truncateVariable.executeQuery("SET foreign_key_checks=0");
+            truncateVariable.executeUpdate();
+            truncateVariable.executeQuery("SET foreign_key_checks=1");
+            truncateVariable.getConnection().commit();
+        } catch (SQLException ex) {
+            return false;
+        }
+        return true;
     }
 
 }

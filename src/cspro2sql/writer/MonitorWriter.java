@@ -55,8 +55,6 @@ public class MonitorWriter {
         int[] ageRange = tm.getAgeRange();
 
         try {
-            tm.printTemplate("dashboard_user", out);
-            tm.printTemplate("cspro2sql_report", out);
             tm.printTemplate("dashboard_info", out);
         } catch (IOException ex) {
             return false;
@@ -185,7 +183,7 @@ public class MonitorWriter {
         out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
         out.println("SELECT 0 INTO @ID;");
         out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
-        out.println("INSERT INTO " + schema + ".`cspro2sql_report` VALUES ('" + name + "', " + (reportCount++) + ");");
+        out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `DESCRIPTION`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) VALUES ('" + name + "', ''," + (reportCount++) + ", 1, 1);");
         out.println();
     }
 

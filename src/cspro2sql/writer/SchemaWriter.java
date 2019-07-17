@@ -44,11 +44,14 @@ public class SchemaWriter {
 
         try {
             tm.printTemplate("cspro2sql_dictionary", ps);
-            tm.printTemplate("cspro2sql_error", ps); 
+            tm.printTemplate("cspro2sql_error", ps);
+            tm.printTemplate("dashboard_user", ps);
+            tm.printTemplate("dashboard_report_type", ps);
+            tm.printTemplate("dashboard_report", ps);
             tm.printTemplate("dashboard_meta_concept", ps);
             tm.printTemplate("dashboard_meta_unit", ps);
             tm.printTemplate("dashboard_meta_variable", ps);
-            
+
         } catch (IOException ex) {
             return;
         }
@@ -113,7 +116,7 @@ public class SchemaWriter {
             if (!record.isMainRecord()) {
                 ps.println("    PRIMARY KEY (ID),");
                 ps.println("    CONSTRAINT fk_" + record.getTableName() + "_" + record.getMainRecord().getName() + " FOREIGN KEY (" + record.getMainRecord().getName() + ") REFERENCES dbo." + record.getMainRecord().getTableName() + "(id)");
-                ps.println("); CREATE INDEX idx_" + record.getTableName() + "_"+ record.getMainRecord().getName() + " ON dbo." + record.getTableName() + "(" + record.getMainRecord().getName() + ");");
+                ps.println("); CREATE INDEX idx_" + record.getTableName() + "_" + record.getMainRecord().getName() + " ON dbo." + record.getTableName() + "(" + record.getMainRecord().getName() + ");");
             } else {
                 ps.println("    PRIMARY KEY (ID)");
                 ps.println(");");
