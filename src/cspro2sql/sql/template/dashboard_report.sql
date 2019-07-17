@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS @SCHEMA.`dashboard_report`;
 CREATE TABLE IF NOT EXISTS @SCHEMA.`dashboard_report` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `NAME` varchar(256) NOT NULL,
+  `NAME` varchar(256),
   `DESCRIPTION` text,
   `REPORT_VIEW` varchar(256) NOT NULL,
   `LIST_ORDER` int(11) NOT NULL,

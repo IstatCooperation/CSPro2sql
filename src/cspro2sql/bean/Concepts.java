@@ -1,8 +1,6 @@
 package cspro2sql.bean;
 
-import cspro2sql.sql.TemplateManager;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**

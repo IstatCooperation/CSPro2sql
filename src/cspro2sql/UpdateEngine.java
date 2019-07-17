@@ -58,9 +58,9 @@ public class UpdateEngine {
 
                 try (Statement readDst = connDst.createStatement()) {
                     try (Statement writeDst = connDst.createStatement()) {
-                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE IN (1,2) AND IS_VISIBLE = 1")) {
+                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE IN (1,2,4) AND IS_VISIBLE = 1")) {
                             while (rs.next()) {
-                                String template = rs.getString(2);
+                                String template = rs.getString(4);
                                 System.out.print("Updating " + template + "... ");
                                 writeDst.executeUpdate("DROP TABLE IF EXISTS " + schema + ".m" + template);
                                 writeDst.executeQuery("SELECT 0 INTO @ID");

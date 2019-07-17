@@ -3,6 +3,7 @@ package cspro2sql.writer;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Record;
+import cspro2sql.bean.Report;
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import cspro2sql.sql.TemplateManager;
@@ -35,7 +36,7 @@ import java.util.regex.Pattern;
  */
 public class MonitorWriter {
 
-    private static final Pattern HOUSEHOLD_BY_PATTERN = Pattern.compile("^r_household_expected_by_(.*)$");
+    
 
     private static final String[] TEMPLATES = new String[]{
         "r_questionnaire_info",
@@ -183,40 +184,12 @@ public class MonitorWriter {
     }
 
     private static void printMaterialized(String schema, String name, PrintStream out) {
-        String reportName = "";
-        String reportType = "";
-        String visible = "1";
         out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
         out.println("SELECT 0 INTO @ID;");
         out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
-        if (isProgressReport(name)) {
-            reportName = "Households by " + name.toUpperCase();
-            reportType = "1";
-        } else if (isAnalysisReport(name)) {
-            switch (name) {
-                case "r_questionnaire_info":
-                    reportName = "Household";
-                    break;
-                case "r_individual_info":
-                    reportName = "Population";
-                    break;
-                case "r_sex_by_age_group":
-                    reportName = "Sex Distribution";
-                    break;
-                default:
-                    reportName = "";
-            }
-            reportType = "2";
-        } else if (name.equals("r_total")) {
-            reportName = "EAs by COUNTRY, Households by COUNTRY";
-            reportType = "1";
-        } else {
-            reportName = name;
-            reportType = "1";
-            visible = "0";
-        }
+        
         out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) "
-                + "VALUES ('" + reportName + "','" + name + "', " + (reportCount++) + ", " + visible + ", " + reportType + ");");
+                + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", 1, " + Report.getReportType(name) + ");");
     }
 
     private static void printAuxTable(TemplateManager mainTm, TemplateManager tm, String auxName, String columnName, PrintStream out) {
@@ -381,21 +354,8 @@ public class MonitorWriter {
         out.println("                `a`) AS `household_expected`;");
     }
 
-    private static boolean isProgressReport(String name) {
-        Matcher m = HOUSEHOLD_BY_PATTERN.matcher(name);
-        if (m.find()) {
-            return true;
-        }
-        return false;
-    }
+    
 
-    private static boolean isAnalysisReport(String name) {
-        for (String report : TEMPLATES) {
-            if (report.equals(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
+   
 
 }
