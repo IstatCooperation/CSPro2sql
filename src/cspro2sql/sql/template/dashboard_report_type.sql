@@ -11,6 +11,6 @@ INSERT INTO @SCHEMA.`dashboard_report_type` (`ID`, `NAME`, `DESCRIPTION`)
 INSERT INTO @SCHEMA.`dashboard_report_type` (`ID`, `NAME`, `DESCRIPTION`) 
     VALUES (2, "analysis" ,"Analysis reports");
 INSERT INTO @SCHEMA.`dashboard_report_type` (`ID`, `NAME`, `DESCRIPTION`) 
-    VALUES (3, "GIS" ,"GIS reports");
+    VALUES (3, "gis" ,"GIS reports");
 INSERT INTO @SCHEMA.`dashboard_report_type` (`ID`, `NAME`, `DESCRIPTION`) 
-    VALUES (4, "AUXILIARY" ,"Internal reports needed by cspro2slq");
+    VALUES (4, "aux" ,"Internal reports needed by cspro2slq");
