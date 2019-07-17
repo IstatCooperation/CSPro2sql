@@ -58,7 +58,7 @@ public class UpdateEngine {
 
                 try (Statement readDst = connDst.createStatement()) {
                     try (Statement writeDst = connDst.createStatement()) {
-                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE = 1 AND IS_VISIBLE = 1")) {
+                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE IN (1,2) AND IS_VISIBLE = 1")) {
                             while (rs.next()) {
                                 String template = rs.getString(2);
                                 System.out.print("Updating " + template + "... ");

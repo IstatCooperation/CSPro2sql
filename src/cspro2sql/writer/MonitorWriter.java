@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Copyright 2017 ISTAT
@@ -32,6 +34,8 @@ import java.util.Set;
  * @version 0.9.18.1
  */
 public class MonitorWriter {
+
+    private static final Pattern HOUSEHOLD_BY_PATTERN = Pattern.compile("^r_household_expected_by_(.*)$");
 
     private static final String[] TEMPLATES = new String[]{
         "r_questionnaire_info",
@@ -88,7 +92,6 @@ public class MonitorWriter {
 //            out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 //            out.println();
 //        }
-
         if (!territory.isEmpty()) {
             TerritoryItem territoryItem = territory.getFirst();
             out.println("CREATE OR REPLACE VIEW " + schema + ".`r_regional_area` AS");
@@ -180,11 +183,40 @@ public class MonitorWriter {
     }
 
     private static void printMaterialized(String schema, String name, PrintStream out) {
+        String reportName = "";
+        String reportType = "";
+        String visible = "1";
         out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
         out.println("SELECT 0 INTO @ID;");
         out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
-        out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `DESCRIPTION`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) VALUES ('" + name + "', ''," + (reportCount++) + ", 1, 1);");
-        out.println();
+        if (isProgressReport(name)) {
+            reportName = "Households by " + name.toUpperCase();
+            reportType = "1";
+        } else if (isAnalysisReport(name)) {
+            switch (name) {
+                case "r_questionnaire_info":
+                    reportName = "Household";
+                    break;
+                case "r_individual_info":
+                    reportName = "Population";
+                    break;
+                case "r_sex_by_age_group":
+                    reportName = "Sex Distribution";
+                    break;
+                default:
+                    reportName = "";
+            }
+            reportType = "2";
+        } else if (name.equals("r_total")) {
+            reportName = "EAs by COUNTRY, Households by COUNTRY";
+            reportType = "1";
+        } else {
+            reportName = name;
+            reportType = "1";
+            visible = "0";
+        }
+        out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) "
+                + "VALUES ('" + reportName + "','" + name + "', " + (reportCount++) + ", " + visible + ", " + reportType + ");");
     }
 
     private static void printAuxTable(TemplateManager mainTm, TemplateManager tm, String auxName, String columnName, PrintStream out) {
@@ -347,6 +379,23 @@ public class MonitorWriter {
         out.println("            FROM");
         printSubTable(tm, "aux_household_expected", "expected", 1000, out);
         out.println("                `a`) AS `household_expected`;");
+    }
+
+    private static boolean isProgressReport(String name) {
+        Matcher m = HOUSEHOLD_BY_PATTERN.matcher(name);
+        if (m.find()) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isAnalysisReport(String name) {
+        for (String report : TEMPLATES) {
+            if (report.equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
