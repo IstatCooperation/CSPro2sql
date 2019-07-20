@@ -1,6 +1,7 @@
 package cspro2sql;
 
 import cspro2sql.bean.ConnectionParams;
+import cspro2sql.bean.Report;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -9,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Copyright 2017 ISTAT
@@ -52,13 +55,13 @@ public class UpdateEngine {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 
             //Connect to the destination database
-            ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
-            try (Connection connDst = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
+            ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
+            try (Connection connDst = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
                 connDst.setAutoCommit(false);
 
                 try (Statement readDst = connDst.createStatement()) {
                     try (Statement writeDst = connDst.createStatement()) {
-                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE IN (1,2,4) AND IS_VISIBLE = 1")) {
+                        try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE != " + Report.REPORT_TYPE_GIS + " AND IS_VISIBLE = 1")) {
                             while (rs.next()) {
                                 String template = rs.getString(4);
                                 System.out.print("Updating " + template + "... ");
@@ -69,6 +72,7 @@ public class UpdateEngine {
                                 System.out.println("done");
                             }
                         }
+                        //updateDashboardStatus(connDst, schema);
                     }
                 }
             }
@@ -79,4 +83,17 @@ public class UpdateEngine {
         return true;
     }
 
+    private static void updateDashboardStatus(Connection conn, String schema) {
+
+        Statement stmt;
+        try {
+            System.out.print("Updating dashboard_status... ");
+            stmt = conn.createStatement();
+            stmt.executeUpdate("INSERT INT0 " + schema + ".dashboard_status values(1, curtime(), curtime(), 1)");
+            stmt.getConnection().commit();
+            System.out.println("done");
+        } catch (SQLException ex) {
+            System.out.println("Database exception (" + ex.getMessage() + ")");
+        }
+    }
 }

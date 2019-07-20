@@ -3,14 +3,15 @@ package cspro2sql;
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Territory;
+import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.TerritoryReader;
-import cspro2sql.writer.TerritoryWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
  */
 public class TerritoryEngine {
 
+    private static final int COMMIT_SIZE = 100;
     private static final Logger LOGGER = Logger.getLogger(TerritoryEngine.class.getName());
 
     public static void main(String[] args) {
@@ -71,16 +73,45 @@ public class TerritoryEngine {
 
     public static boolean execute(Dictionary dictionary, Properties prop) {
         List<Territory> territoryList;
-        Territory territoryStructure;
         try {
-            territoryStructure = TerritoryReader.parseTerritoryStructure(dictionary);
             territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), dictionary);
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
                 ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
                     connSrc.setAutoCommit(false);
-                    TerritoryWriter.write(territoryList, territoryStructure, prop.getProperty("db.dest.schema"), connSrc);
+                    try (Statement stmt = connSrc.createStatement()) {
+
+                        System.out.println("Loading territory table [" + territoryList.size() + "]");
+                        if (truncateTerritory(stmt, prop)) {
+                            String insertQuery = "INSERT INTO " + prop.getProperty("db.dest.schema") + ".`territory` VALUES(";
+                            String insertValues = "";
+                            String territoryCode = "";
+                            int rowCounter = 1;
+                            for (Territory territory : territoryList) {
+                                int counter = 1;
+                                for (TerritoryItem territoryItem : territory.getItemsList()) {
+                                    if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
+                                        insertValues += "\"" + territoryItem.getName() + "\",";
+                                    } else {
+                                        insertValues += Integer.parseInt(territoryItem.getName()) + ",";
+                                        territoryCode += territoryItem.getName();
+                                    }
+                                    counter++;
+                                }
+                                stmt.executeUpdate(insertQuery + insertValues + "\"" + territoryCode + "\")");
+                                if (rowCounter % COMMIT_SIZE == 0) {
+                                    System.out.print("+");
+                                    connSrc.commit();
+                                }
+                                rowCounter++;
+                                insertValues = "";
+                                territoryCode = "";
+                            }
+                        }
+                        connSrc.commit();
+                        System.out.println("\nTerritory table successfully loaded!");
+                    }
                 }
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
                 System.out.println("Database exception (" + ex.getMessage() + ")");
@@ -92,5 +123,19 @@ public class TerritoryEngine {
         }
 
         return true;
+    }
+
+    private static boolean truncateTerritory(Statement stmt, Properties prop) {
+        try {
+            stmt.executeQuery("SET foreign_key_checks=0");
+            stmt.executeUpdate("TRUNCATE TABLE " + prop.getProperty("db.dest.schema") + ".`territory`");
+            stmt.executeQuery("SET foreign_key_checks=1");
+            stmt.getConnection().commit();
+            return true;
+        } catch (SQLException ex) {
+            System.out.println("Database exception (Could not truncate territory table)!");
+            return false;
+        }
+
     }
 }
