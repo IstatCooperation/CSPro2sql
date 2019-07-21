@@ -35,6 +35,8 @@ import java.util.logging.Logger;
  */
 public class UpdateEngine {
 
+    private static final int DASHBOARD_STATUS_ID = 1;
+
     public static void main(String[] args) throws Exception {
         Properties prop = new Properties();
         try (InputStream in = UpdateEngine.class.getResourceAsStream("/database.properties")) {
@@ -72,7 +74,7 @@ public class UpdateEngine {
                                 System.out.println("done");
                             }
                         }
-                        //updateDashboardStatus(connDst, schema);
+                        updateDashboardStatus(connDst, schema);
                     }
                 }
             }
@@ -84,13 +86,24 @@ public class UpdateEngine {
     }
 
     private static void updateDashboardStatus(Connection conn, String schema) {
+        Statement insertStmt;
+        Integer count;
+        System.out.print("Updating dashboard_status... ");
+        try (Statement countStmt = conn.createStatement()) {
+            try (ResultSet rs = countStmt.executeQuery("SELECT COUNT(*) FROM " + schema + ".dashboard_status")) {
+                while (rs.next()) {
+                    count = rs.getInt(1);
+                    if (count == 0) { //empty table
+                        insertStmt = conn.createStatement();
+                        insertStmt.executeUpdate("INSERT INTO " + schema + ".dashboard_status values (" + DASHBOARD_STATUS_ID + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)");
+                    } else {
+                        insertStmt = conn.createStatement();
+                        insertStmt.executeUpdate("UPDATE " + schema + ".dashboard_status set LAST_UPDATE = CURRENT_TIMESTAMP where id = " + DASHBOARD_STATUS_ID);
 
-        Statement stmt;
-        try {
-            System.out.print("Updating dashboard_status... ");
-            stmt = conn.createStatement();
-            stmt.executeUpdate("INSERT INT0 " + schema + ".dashboard_status values(1, curtime(), curtime(), 1)");
-            stmt.getConnection().commit();
+                    }
+                    insertStmt.getConnection().commit();
+                }
+            }
             System.out.println("done");
         } catch (SQLException ex) {
             System.out.println("Database exception (" + ex.getMessage() + ")");
