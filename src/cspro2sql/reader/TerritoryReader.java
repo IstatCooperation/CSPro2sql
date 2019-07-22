@@ -51,15 +51,26 @@ public class TerritoryReader {
         return territoryList;
     }
 
+    public static String[] getHeader(String territoryFile) {
+        String[] header = null;
+        if (territoryFile != null && !territoryFile.isEmpty()) {
+            try {
+                header = readHeader(territoryFile);
+            } catch (IOException ex) {
+                System.out.println("Impossible to read territory file " + territoryFile + " (" + ex.getMessage() + ")");
+            }
+        }
+        return header;
+    }
+
     public static Territory parseTerritoryStructure(Dictionary dictionary) {
         Territory territory = new Territory();
         if (dictionary.hasTagged(Dictionary.TAG_TERRITORY)) {
-            Iterable<Item> territories = dictionary.getTaggedItems(Dictionary.TAG_TERRITORY);
-            for (Item terrItem : territories) {
+            Iterable<Item> items = dictionary.getTaggedItems(Dictionary.TAG_TERRITORY);
+            for (Item terrItem : items) {
                 territory.addItem(terrItem);
             }
         }
-
         return territory;
     }
 
@@ -77,6 +88,25 @@ public class TerritoryReader {
             }
         }
         return territoryList;
+    }
+
+    private static String[] readHeader(String fileName) throws IOException {
+        boolean isLocalFile = new File(fileName).exists();
+        try (InputStream in
+                = (isLocalFile
+                        ? new FileInputStream(fileName)
+                        : DictionaryReader.class.getResourceAsStream("/" + fileName))) {
+            try (InputStreamReader fr = new InputStreamReader(in, "UTF-8")) {
+                try (BufferedReader br = new BufferedReader(fr)) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String[] columns = line.split(";");
+                        return columns;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private static void read(List<Territory> territoryList, Territory territoryStructure, BufferedReader br) throws IOException {
@@ -107,7 +137,7 @@ public class TerritoryReader {
 
     private static boolean checkColumnName(String colName, List<TerritoryItem> items) {
         for (TerritoryItem terrItem : items) {
-            if (terrItem.getItem().getName().equals(colName) || terrItem.getItem().getName().equals(colName.replace("_NAME", ""))) {
+            if (terrItem.getName().equals(colName) || terrItem.getName().equals(colName.replace("_NAME", ""))) {
                 return true;
             }
         }

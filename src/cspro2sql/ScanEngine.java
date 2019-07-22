@@ -5,9 +5,14 @@
  */
 package cspro2sql;
 
+import static cspro2sql.TerritoryEngine.execute;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Tag;
+import cspro2sql.bean.Territory;
+import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
+import cspro2sql.reader.TerritoryReader;
+import static cspro2sql.reader.TerritoryReader.parseTerritoryStructure;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,19 +62,6 @@ public class ScanEngine {
                 dictionariesAvailable = false;
             }
         }
-        System.out.println("[Territory]");
-        String territory = prop.getProperty("territory");
-        if (territory != null && !territory.isEmpty()) {
-            isLocalFile = new File(territory.trim()).exists();
-            if (isLocalFile) {
-                System.out.println("- File " + territory.trim() + ": OK");
-            } else {
-                System.out.println("- File " + territory.trim() + ": ERROR (file not available)");
-            }
-        } else {
-            System.out.println("Territory file not specified!");
-        }
-
         System.out.println("[Metadata]");
         if (dictionariesAvailable) {
             try {
@@ -80,6 +72,21 @@ public class ScanEngine {
 
                 for (Dictionary dictionary : dictionaries) {
                     checkTags(dictionary);
+                    if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+                        System.out.println("Territory structure");
+                        Territory territoryStructure = parseTerritoryStructure(dictionary);
+                        boolean isFirst = true;
+                        for (TerritoryItem terrItem : territoryStructure.getItemsList()) {
+                            if(isFirst){
+                                System.out.print(terrItem.getName() + "[" + terrItem.getItemName() + "]");
+                                isFirst = false;
+                            }
+                            else{
+                                System.out.print(" -> " + terrItem.getName() + "[" + terrItem.getItemName() + "]");
+                            }
+                        }
+                        System.out.println("");
+                    }
                 }
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, "Cannot parse dictionary files", ex);
@@ -89,6 +96,29 @@ public class ScanEngine {
             System.out.println("Could not access one or more dictionaries. Metadata scanning is disabled");
         }
 
+        System.out.println("[Territory]");
+        String territory = prop.getProperty("territory");
+        if (territory != null && !territory.isEmpty()) {
+            isLocalFile = new File(territory.trim()).exists();
+            if (isLocalFile) {
+                System.out.println("- File " + territory.trim() + ": OK");
+                String[] header = TerritoryReader.getHeader(territory);
+                for(int i = 0; i <header.length; i++){
+                    if(i == 0){
+                        System.out.print(header[i]);
+                    } else{
+                        System.out.print(" -> " + header[i]);
+                    }
+                }
+                System.out.println("");
+            } else {
+                System.out.println("- File " + territory.trim() + ": ERROR (file not available)");
+            }
+        } else {
+            System.out.println("Territory file not specified!");
+        }
+
+        
         System.out.println("[Database]");
         TestConnectionEngine.execute(prop);
 
@@ -99,21 +129,21 @@ public class ScanEngine {
     private static Map<Tag, Boolean> createMap() {
 
         Map<Tag, Boolean> result = new LinkedHashMap<>();
-        
+
         result.put(Dictionary.TAG_HOUSEHOLD, Boolean.FALSE);
         result.put(Dictionary.TAG_LISTING, Boolean.FALSE);
         result.put(Dictionary.TAG_EXPECTED, Boolean.FALSE);
-        result.put(Dictionary.TAG_TERRITORY, Boolean.FALSE);
         result.put(Dictionary.TAG_AGE, Boolean.FALSE);
         result.put(Dictionary.TAG_SEX, Boolean.FALSE);
         result.put(Dictionary.TAG_RELIGION, Boolean.FALSE);
+        result.put(Dictionary.TAG_TERRITORY, Boolean.FALSE);
 
         return result;
     }
 
     private static void checkTags(Dictionary dictionary) {
         for (Map.Entry entry : reportTags.entrySet()) {
-            Tag tag = (Tag)entry.getKey();
+            Tag tag = (Tag) entry.getKey();
             if (dictionary.hasTag(tag) || dictionary.hasTagged(tag)) {
                 entry.setValue(Boolean.TRUE);
                 System.out.println("Tag " + tag.getName() + ": OK ( " + dictionary.getName() + ")");

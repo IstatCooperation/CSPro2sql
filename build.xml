@@ -28,12 +28,12 @@
     </target>
     
     <target name="-post-jar">
-        <echo message="Creating cspro2sql"/>
-        <zip destfile="cspro2sql">
+        <echo message="Creating cspro2sql.zip"/>
+        <zip destfile="cspro2sql.zip">
             <zipfileset dir="dist" includes="cspro2sql" prefix="cspro2sql/lib" />
             <zipfileset dir="lib" prefix="cspro2sql/lib" />
-            <zipfileset dir="." includes="cspro2sql" prefix="cspro2sql" />
-            <zipfileset dir="." includes="cspro2sql" prefix="cspro2sql" />
+            <zipfileset dir="." includes="cspro2sql.sh" prefix="cspro2sql" />
+            <zipfileset dir="." includes="cspro2sql.bat" prefix="cspro2sql" />
         </zip>
     </target>
     
