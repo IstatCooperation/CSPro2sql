@@ -2,12 +2,12 @@
 
 <project name="CsPro2Sql" default="default" basedir=".">
     
-    <description>Builds, tests, and runs the project CsPro2Sql.</description>
+    <description>Builds, tests, and runs the project cspro2sql</description>
     
     <import file="nbproject/build-impl.xml"/>
     
     <target name="package-for-store" depends="jar">
-        <property name="store.jar.name" value="CsPro2Sql"/>
+        <property name="store.jar.name" value="cspro2sql"/>
         <property name="store.dir" value="store"/>
         <property name="store.jar" value="${store.dir}/${store.jar.name}.jar"/>
         <echo message="Packaging ${application.title} into a single JAR at ${store.jar}"/>
@@ -28,12 +28,12 @@
     </target>
     
     <target name="-post-jar">
-        <echo message="Creating CsPro2Sql.zip"/>
-        <zip destfile="CsPro2Sql.zip">
-            <zipfileset dir="dist" includes="CsPro2Sql.jar" prefix="CsPro2Sql/lib" />
-            <zipfileset dir="lib" prefix="CsPro2Sql/lib" />
-            <zipfileset dir="." includes="CsPro2Sql.sh" prefix="CsPro2Sql" />
-            <zipfileset dir="." includes="CsPro2Sql.bat" prefix="CsPro2Sql" />
+        <echo message="Creating cspro2sql"/>
+        <zip destfile="cspro2sql">
+            <zipfileset dir="dist" includes="cspro2sql" prefix="cspro2sql/lib" />
+            <zipfileset dir="lib" prefix="cspro2sql/lib" />
+            <zipfileset dir="." includes="cspro2sql" prefix="cspro2sql" />
+            <zipfileset dir="." includes="cspro2sql" prefix="cspro2sql" />
         </zip>
     </target>
     

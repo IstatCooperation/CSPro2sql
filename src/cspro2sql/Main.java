@@ -50,13 +50,16 @@ public class Main {
         boolean error = false;
         List<Dictionary> dictionaries;
 
-        if (opts.scanEngine) {
+        if (opts.generateEngine) {
+            GenerateEngine.execute(opts.survey, opts.household, opts.listing, opts.ea);
+            return;
+        } else if (opts.scanEngine) {
             ScanEngine.execute(opts.prop);
             return;
         } else if (opts.testConnectionEngine) {
             TestConnectionEngine.execute(opts.prop);
             return;
-        } 
+        }
 
         try {
             dictionaries = DictionaryReader.parseDictionaries(opts.schema, opts.dictionary, opts.tablePrefix);
@@ -135,6 +138,12 @@ public class Main {
         options.addOption("r", "recovery", false, "recover a broken session of the loader");
         options.addOption("v", "version", false, "print the version of the programm");
         options.addOption("d", "delay", true, "perform again after DELAY minutes");
+        options.addOption("s", "survey", true, "name of the survey to be analyzed");
+        options.addOption("hh", "household", true, "name of household dictionary file");
+        options.addOption("l", "listing", true, "name of listing dictionary file");
+        options.addOption("ea", "enumeration area", true, "name of enumenration area dictionary file");
+
+        boolean loadProperties = true;
 
         //Begin parsing command line
         CsPro2SqlOptions opts = new CsPro2SqlOptions(options);
@@ -151,14 +160,15 @@ public class Main {
 
             if (cmd.hasOption("e")) {
 
+                opts.propertiesFile = cmd.getOptionValue("p");
+                String engine = cmd.getOptionValue("e");
+
                 //[TO DO] Check if engine type exists
                 //Questo controllo sembra non funzionare
-                if (!cmd.hasOption("p")) {
+                if (!engine.equals("generate") && !cmd.hasOption("p")) {
                     opts.printError("The properties file is mandatory!");
                 }
 
-                opts.propertiesFile = cmd.getOptionValue("p");
-                String engine = cmd.getOptionValue("e");
                 switch (engine) {
                     case "schema":
                         opts.schemaEngine = true;
@@ -214,6 +224,22 @@ public class Main {
                     case "scan":
                         opts.scanEngine = true;
                         break;
+                    case "generate":
+                        opts.generateEngine = true;
+                        if (cmd.hasOption("s")) {
+                            opts.survey = cmd.getOptionValue("s");
+                        }
+                        if (cmd.hasOption("hh")) {
+                            opts.household = cmd.getOptionValue("hh");
+                        }
+                        if (cmd.hasOption("l")) {
+                            opts.listing = cmd.getOptionValue("l");
+                        }
+                        if (cmd.hasOption("ea")) {
+                            opts.ea = cmd.getOptionValue("ea");
+                        }
+                        loadProperties = false;
+                        break;
                     case "linkage":
                         opts.linkageEngine = true;
                         break;
@@ -230,27 +256,31 @@ public class Main {
         //End parsing command line
 
         //Load property file
-        Properties prop = new Properties();
-        try (InputStream in = new FileInputStream(opts.propertiesFile)) {
-            prop.load(in);
-        } catch (IOException ex) {
-            opts.printError("Cannot read properties file '" + opts.propertiesFile + "'");
-            //opts.printHelp();
-        }
+        if (loadProperties) {
+            Properties prop = new Properties();
+            try (InputStream in = new FileInputStream(opts.propertiesFile)) {
+                prop.load(in);
+            } catch (IOException ex) {
+                opts.printError("Cannot read properties file '" + opts.propertiesFile + "'");
+                //opts.printHelp();
+            }
 
-        opts.prop = prop;
-        opts.dictionary = prop.getProperty("dictionary");
-        opts.schema = prop.getProperty("db.dest.schema");
-        if (opts.schema == null || opts.schema.isEmpty()) {
-            opts.printError("The database schema is mandatory!\nPlease set 'db.dest.schema' into the properties file");
+            opts.prop = prop;
+            opts.dictionary = prop.getProperty("dictionary");
+            opts.schema = prop.getProperty("db.dest.schema");
+            if (opts.schema == null || opts.schema.isEmpty()) {
+                opts.printError("The database schema is mandatory!\nPlease set 'db.dest.schema' into the properties file");
+            }
+            opts.tablePrefix = prop.getProperty("dictionary.prefix", "");
+
         }
-        opts.tablePrefix = prop.getProperty("dictionary.prefix", "");
 
         return opts;
     }
 
     public static class CsPro2SqlOptions {
 
+        boolean generateEngine;
         boolean schemaEngine;
         boolean loaderEngine;
         boolean monitorEngine;
@@ -272,6 +302,10 @@ public class Main {
         String tablePrefix;
         String propertiesFile;
         Integer delay;
+        String survey = "survey";
+        String household = "household";
+        String listing = "";
+        String ea = "";
         PrintStream ps = null;
         Properties prop;
         private final Options options;
@@ -285,6 +319,7 @@ public class Main {
 
             //System.out.println("CsPro2Sql - version " + VERSION + "\n");
             formatter.printHelp("\n\n"
+                    + "CsPro2Sql -e generate    -s SURVEY_NAME [-hh HOUSE_QUEST] [-l LISTING_QUEST] [-ea EA_QUEST]\n"
                     + "CsPro2Sql -e scan        -p PROPERTIES_FILE\n"
                     + "CsPro2Sql -e schema      -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]\n"
                     + "CsPro2Sql -e loader      -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE] [-d DELAY]\n"
@@ -298,6 +333,7 @@ public class Main {
                     + "CsPro2Sql -v\n"
                     + "\n"
                     + "Engines descriptions:\n"
+                    + " - generate: generates files and folders for cspro2sql\n"
                     + " - scan: check input data and metadata\n"
                     + " - schema: create the sql script for microdata\n"
                     + " - loader: load microdata into the sql database\n"
