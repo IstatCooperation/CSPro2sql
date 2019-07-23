@@ -76,7 +76,7 @@ public class GenerateEngine {
             createMetadataReadmeFile(dirDictionary);
             createTerritoryFile(dirTerritory);
             createTerritoryReadmeFile(dirTerritory);
-            System.out.println("Project " + surveyFolder + " successfully created!");
+            System.out.println("Project " + surveyFolder + " successfully created.");
             System.out.println("Now you are ready to start processing your data!");
             System.out.println("");
             System.out.println("Please open the file " + surveyFolder + File.separator + FILE_README);
