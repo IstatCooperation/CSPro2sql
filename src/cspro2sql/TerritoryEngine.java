@@ -2,6 +2,7 @@ package cspro2sql;
 
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
+import cspro2sql.bean.Item;
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
@@ -81,9 +82,8 @@ public class TerritoryEngine {
                 try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
                     connSrc.setAutoCommit(false);
                     try (Statement stmt = connSrc.createStatement()) {
-
-                        System.out.println("Loading territory table [" + territoryList.size() + "]");
-                        if (truncateTerritory(stmt, prop)) {
+                        if (createTerritoryTable(dictionary, stmt, prop) && truncateTerritory(stmt, prop)) {
+                            System.out.println("Loading territory table [" + territoryList.size() + " records]");
                             String insertQuery = "INSERT INTO " + prop.getProperty("db.dest.schema") + ".`territory` VALUES(";
                             String insertValues = "";
                             String territoryCode = "";
@@ -136,6 +136,46 @@ public class TerritoryEngine {
             System.out.println("Database exception (Could not truncate territory table)!");
             return false;
         }
-
     }
+
+    private static boolean createTerritoryTable(Dictionary dictionary, Statement stmt, Properties prop) {
+
+        Territory territory = new Territory();
+        if (dictionary.hasTagged(Dictionary.TAG_TERRITORY)) {
+            Iterable<Item> territories = dictionary.getTaggedItems(Dictionary.TAG_TERRITORY);
+            for (Item item : territories) {
+                territory.addItem(item);
+            }
+        }
+
+        if (!territory.isEmpty()) {
+            try {
+                stmt.executeQuery("SET foreign_key_checks=0");
+                stmt.executeUpdate("DROP TABLE IF EXISTS " + prop.getProperty("db.dest.schema") + ".`territory`");
+                String createQuery = "CREATE TABLE " + prop.getProperty("db.dest.schema") + ".`territory`(";
+                String idx = "";
+                for (int i = 0; i < territory.size(); i++) {
+                    TerritoryItem territoryItem = territory.get(i);
+                    String name = territoryItem.getItemName();
+                    createQuery += "`" + name + "` int(11) DEFAULT NULL,";
+                    createQuery += "`" + name + "_NAME` text COLLATE utf8mb4_unicode_ci,";
+                    if (i > 0) {
+                        idx += ",";
+                    }
+                    idx += "`" + name + "`";
+                }
+                createQuery += " `TERRITORY_CODE` text COLLATE utf8mb4_unicode_ci,";
+                createQuery += " KEY `idx_territory` (" + idx + ")";
+                createQuery += ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+                stmt.executeUpdate(createQuery);
+                stmt.executeQuery("SET foreign_key_checks=1");
+                stmt.getConnection().commit();
+                            } catch (SQLException ex) {
+                System.out.println("Database exception (Could not create territory table)!");
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

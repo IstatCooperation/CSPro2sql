@@ -52,27 +52,34 @@ public class GenerateEngine {
     }
 
     public static boolean execute(String surveyFolder, String householdName, String listingName, String eaName) {
-
         File dir = new File(surveyFolder);
-        File dirDictionary = new File(surveyFolder + "/" + FOLDER_DICTIONARY);
-        File dirTerritory = new File(surveyFolder + "/" + FOLDER_TERRITORY);
+        File dirDictionary = new File(surveyFolder + File.separator + FOLDER_DICTIONARY);
+        File dirTerritory = new File(surveyFolder + File.separator + FOLDER_TERRITORY);
+        System.out.println("Starting generation of project " + surveyFolder);
         if (!dir.exists()) {
             dir.mkdir();
             dirDictionary.mkdir();
             dirTerritory.mkdir();
+            System.out.println("Created folder " + surveyFolder);
+            System.out.println("Created folder " + surveyFolder + File.separator + FOLDER_DICTIONARY);
+            System.out.println("Created folder " + surveyFolder + File.separator + FOLDER_TERRITORY);
 
             createPropertiesFile(dir, surveyFolder, householdName, listingName, eaName);
             createReadmeFile(dir, surveyFolder);
             createHouseholdFile(dirDictionary);
-            if(!listingName.equals("")){
+            if (!listingName.equals("")) {
                 createListingFile(dirDictionary);
             }
-            if(!eaName.equals("")){
+            if (!eaName.equals("")) {
                 createEaFile(dirDictionary);
             }
             createMetadataReadmeFile(dirDictionary);
             createTerritoryFile(dirTerritory);
             createTerritoryReadmeFile(dirTerritory);
+            System.out.println("Project " + surveyFolder + " successfully created!");
+            System.out.println("Now you are ready to start processing your data!");
+            System.out.println("");
+            System.out.println("Please open the file " + surveyFolder + File.separator + FILE_README);
 
         } else {
             System.err.println("[ERROR] Could not generate project files. Folder " + surveyFolder + " already exists!");
@@ -138,7 +145,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("db.dest.password=");
                     bw.close();
-
+                    System.out.println("Created file " + surveyFolder + File.separator + surveyFolder + ".properties");
                 }
             }
 
@@ -194,7 +201,8 @@ public class GenerateEngine {
                     bw.write("cspro2sql -e schema -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_MICRO);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 2] Create the Dashboard database. Use your favourite Mysql client or execute the following command:");
+                    bw.write("[Step 2] Create the Dashboard database. Use your favourite Mysql client or execute the following command ");
+                    bw.write("(replace #root_user with the root username):");
                     bw.newLine();
                     bw.newLine();
                     bw.write("mysql -u #root_user -p < " + surveyFolder + "/" + FILE_SQL_MICRO);
@@ -206,22 +214,23 @@ public class GenerateEngine {
                     bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 4] Generate the Dashboard report tables script " + surveyFolder + "/" + FILE_SQL_REPORT);
+                    bw.write("[Step 4] Create and populate the territory table");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("cspro2sql -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("[Step 5] Generate the Dashboard report tables script " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
                     bw.write("cspro2sql -e monitor -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 5] Create the Dashboard report tables. Use your favourite Mysql client or execute the following command:");
+                    bw.write("[Step 6] Create the Dashboard report tables. Use your favourite Mysql client or execute the following command");
+                    bw.write("(replace #root_user with the root username):");
                     bw.newLine();
                     bw.newLine();
                     bw.write("mysql -u #root_user -p < " + surveyFolder + "/" + FILE_SQL_REPORT);
-                    bw.newLine();
-                    bw.newLine();
-                    bw.write("[Step 6] Populate the territory table");
-                    bw.newLine();
-                    bw.newLine();
-                    bw.write("cspro2sql -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 7] Update reports (step to be repeated during fieldwork)");
@@ -234,6 +243,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + surveyFolder + File.separator + FILE_README);
                 }
             }
 
@@ -417,6 +427,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + dirDictionary + File.separator + FILE_HOUSEHOLD_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -522,6 +533,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + dirDictionary + File.separator + FILE_LISTING_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -655,6 +667,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + dirDictionary + File.separator + FILE_EA_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -768,6 +781,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + dirDictionary + File.separator + FILE_README);
                 }
             }
 
@@ -775,7 +789,7 @@ public class GenerateEngine {
             Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private static void createTerritoryFile(File dirTerritory) {
         File properties = new File(dirTerritory, FILE_TERRITORY_TEMPLATE);
         try {
@@ -796,13 +810,14 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("1;Lazio;1;Frosinone;2;Cervaro;4;004");
                     bw.close();
+                    System.out.println("Created file " + dirTerritory + File.separator + FILE_TERRITORY_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
             Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private static void createTerritoryReadmeFile(File dirTerritory) {
         File readme = new File(dirTerritory, FILE_README);
         try {
@@ -829,6 +844,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
+                    System.out.println("Created file " + dirTerritory + File.separator + FILE_README);
                 }
             }
 

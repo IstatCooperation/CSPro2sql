@@ -5,7 +5,6 @@
  */
 package cspro2sql;
 
-import static cspro2sql.TerritoryEngine.execute;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Tag;
 import cspro2sql.bean.Territory;
@@ -16,6 +15,7 @@ import static cspro2sql.reader.TerritoryReader.parseTerritoryStructure;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +50,7 @@ public class ScanEngine {
 
         boolean isLocalFile;
         boolean dictionariesAvailable = true;
+        Territory territoryStructure = null;
         String[] dicts = prop.getProperty("dictionary").split(",");
         System.out.println("Starting property file scan...");
         System.out.println("[Dictionaries]");
@@ -73,16 +74,15 @@ public class ScanEngine {
                 for (Dictionary dictionary : dictionaries) {
                     checkTags(dictionary);
                     if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
-                        System.out.println("Territory structure");
-                        Territory territoryStructure = parseTerritoryStructure(dictionary);
+                        System.out.println("Territory structure variable[label]");
+                        territoryStructure = parseTerritoryStructure(dictionary);
                         boolean isFirst = true;
                         for (TerritoryItem terrItem : territoryStructure.getItemsList()) {
-                            if(isFirst){
-                                System.out.print(terrItem.getName() + "[" + terrItem.getItemName() + "]");
+                            if (isFirst) {
+                                System.out.print(terrItem.getItemName() + "[" + terrItem.getName() + "]");
                                 isFirst = false;
-                            }
-                            else{
-                                System.out.print(" -> " + terrItem.getName() + "[" + terrItem.getItemName() + "]");
+                            } else {
+                                System.out.print(" -> " + terrItem.getItemName() + "[" + terrItem.getName() + "]");
                             }
                         }
                         System.out.println("");
@@ -103,14 +103,15 @@ public class ScanEngine {
             if (isLocalFile) {
                 System.out.println("- File " + territory.trim() + ": OK");
                 String[] header = TerritoryReader.getHeader(territory);
-                for(int i = 0; i <header.length; i++){
-                    if(i == 0){
+                for (int i = 0; i < header.length; i++) {
+                    if (i == 0) {
                         System.out.print(header[i]);
-                    } else{
+                    } else {
                         System.out.print(" -> " + header[i]);
                     }
                 }
                 System.out.println("");
+                checkTerritoryStructure(territoryStructure, header);
             } else {
                 System.out.println("- File " + territory.trim() + ": ERROR (file not available)");
             }
@@ -118,7 +119,6 @@ public class ScanEngine {
             System.out.println("Territory file not specified!");
         }
 
-        
         System.out.println("[Database]");
         TestConnectionEngine.execute(prop);
 
@@ -130,25 +130,65 @@ public class ScanEngine {
 
         Map<Tag, Boolean> result = new LinkedHashMap<>();
 
-        result.put(Dictionary.TAG_HOUSEHOLD, Boolean.FALSE);
+        result.put(Dictionary.TAG_HOUSEHOLD, Boolean.TRUE);
         result.put(Dictionary.TAG_LISTING, Boolean.FALSE);
         result.put(Dictionary.TAG_EXPECTED, Boolean.FALSE);
-        result.put(Dictionary.TAG_AGE, Boolean.FALSE);
-        result.put(Dictionary.TAG_SEX, Boolean.FALSE);
+        result.put(Dictionary.TAG_INDIVIDUAL, Boolean.TRUE);
+        result.put(Dictionary.TAG_AGE, Boolean.TRUE);
+        result.put(Dictionary.TAG_SEX, Boolean.TRUE);
         result.put(Dictionary.TAG_RELIGION, Boolean.FALSE);
-        result.put(Dictionary.TAG_TERRITORY, Boolean.FALSE);
+        result.put(Dictionary.TAG_TERRITORY, Boolean.TRUE);
 
         return result;
     }
 
     private static void checkTags(Dictionary dictionary) {
+
+        List<String> foundTags = new ArrayList<>();
+
         for (Map.Entry entry : reportTags.entrySet()) {
             Tag tag = (Tag) entry.getKey();
             if (dictionary.hasTag(tag) || dictionary.hasTagged(tag)) {
-                entry.setValue(Boolean.TRUE);
-                System.out.println("Tag " + tag.getName() + ": OK ( " + dictionary.getName() + ")");
+                foundTags.add(tag.getName());
+            }
+        }
+
+        //Cicle on tags
+        for (Map.Entry entry : reportTags.entrySet()) {
+            Tag tag = (Tag) entry.getKey();
+            if (!foundTags.contains(tag.getName())) {
+                System.out.print("Tag " + tag.getName() + ": MISSING");
+                if ((Boolean) entry.getValue()) { //mandatory tag
+                    System.out.print(" (this tag is mandatory)");
+                }
+                System.out.println("");
+            } else {
+                System.out.println("Tag " + tag.getName() + ": OK (" + dictionary.getName() + ")");
             }
         }
     }
 
+    private static void checkTerritoryStructure(Territory territoryStructure, String[] header) {
+        boolean matching = true;
+        if (territoryStructure != null && !territoryStructure.isEmpty()) {
+            for (int i = 0; i < header.length; i++) {
+                if (!checkTerritoryFileColumn(header[i], territoryStructure)){
+                    System.out.println("Column " + header[i] + " does not match territory structure");
+                    matching = false;
+                }
+            }
+        }
+        if(matching){
+            System.out.println("Territory file matches metadata. It is possible to generate the territory table!");
+        }
+    }
+
+    private static boolean checkTerritoryFileColumn(String columnName, Territory territoryStructure) {
+        for (TerritoryItem item : territoryStructure.getItemsList()) {
+            if (item.getName().equals(columnName.replace("_NAME", "")) || item.getItemName().equals(columnName.replace("_NAME", ""))) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
