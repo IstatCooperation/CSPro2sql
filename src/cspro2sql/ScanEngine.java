@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cspro2sql;
 
 import cspro2sql.bean.Dictionary;
@@ -24,8 +19,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Copyright 2017 ISTAT
  *
- * @author mbruno
+ * Licensed under the EUPL, Version 1.1 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence. You may
+ * obtain a copy of the Licence at:
+ *
+ * http://ec.europa.eu/idabc/eupl5
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ *
+ * @author Guido Drovandi <drovandi @ istat.it>
+ * @author Mauro Bruno <mbruno @ istat.it>
+ * @version 0.9.18.2
  */
 public class ScanEngine {
 
