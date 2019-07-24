@@ -29,16 +29,16 @@ import java.util.logging.Logger;
  */
 public class GenerateEngine {
 
-    private static final String FOLDER_DICTIONARY = "dictionary";
-    private static final String FOLDER_TERRITORY = "territory";
-    private static final String FILE_README = "README.txt";
-    private static final String FILE_TERRITORY = "territory.csv";
-    private static final String FILE_SQL_MICRO = "dashboard_micro.sql";
-    private static final String FILE_SQL_REPORT = "dashboard_report.sql";
-    private static final String FILE_HOUSEHOLD_TEMPLATE = "Household_template.dcf";
-    private static final String FILE_LISTING_TEMPLATE = "Listing_template.dcf";
-    private static final String FILE_EA_TEMPLATE = "Eacode_template.dcf";
-    private static final String FILE_TERRITORY_TEMPLATE = "territory_template.csv";
+    public static final String FOLDER_DICTIONARY = "dictionary";
+    public static final String FOLDER_TERRITORY = "territory";
+    public static final String FILE_README = "README.txt";
+    public static final String FILE_TERRITORY = "territory.csv";
+    public static final String FILE_SQL_MICRO = "dashboard_micro.sql";
+    public static final String FILE_SQL_REPORT = "dashboard_report.sql";
+    public static final String FILE_HOUSEHOLD_TEMPLATE = "Household_template.dcf";
+    public static final String FILE_LISTING_TEMPLATE = "Listing_template.dcf";
+    public static final String FILE_EA_TEMPLATE = "Eacode_template.dcf";
+    public static final String FILE_TERRITORY_TEMPLATE = "territory_template.csv";
 
     private static final Logger LOGGER = Logger.getLogger(GenerateEngine.class.getName());
 
@@ -53,33 +53,33 @@ public class GenerateEngine {
 
     public static boolean execute(String surveyFolder, String householdName, String listingName, String eaName) {
         File dir = new File(surveyFolder);
-        File dirDictionary = new File(surveyFolder + File.separator + FOLDER_DICTIONARY);
-        File dirTerritory = new File(surveyFolder + File.separator + FOLDER_TERRITORY);
+        File dirDictionary = new File(surveyFolder + "/" + FOLDER_DICTIONARY);
+        File dirTerritory = new File(surveyFolder + "/" + FOLDER_TERRITORY);
         System.out.println("Starting generation of project " + surveyFolder);
         if (!dir.exists()) {
             dir.mkdir();
             dirDictionary.mkdir();
             dirTerritory.mkdir();
             System.out.println("Created folder " + surveyFolder);
-            System.out.println("Created folder " + surveyFolder + File.separator + FOLDER_DICTIONARY);
-            System.out.println("Created folder " + surveyFolder + File.separator + FOLDER_TERRITORY);
+            System.out.println("Created folder " + surveyFolder + "/" + FOLDER_DICTIONARY);
+            System.out.println("Created folder " + surveyFolder + "/" + FOLDER_TERRITORY);
 
             createPropertiesFile(dir, surveyFolder, householdName, listingName, eaName);
             createReadmeFile(dir, surveyFolder);
-            createHouseholdFile(dirDictionary);
+            createHouseholdFile(dirDictionary, surveyFolder);
             if (!listingName.equals("")) {
-                createListingFile(dirDictionary);
+                createListingFile(dirDictionary, surveyFolder);
             }
             if (!eaName.equals("")) {
-                createEaFile(dirDictionary);
+                createEaFile(dirDictionary, surveyFolder);
             }
-            createMetadataReadmeFile(dirDictionary);
-            createTerritoryFile(dirTerritory);
-            createTerritoryReadmeFile(dirTerritory);
+            createMetadataReadmeFile(dirDictionary, surveyFolder);
+            createTerritoryFile(dirTerritory, surveyFolder);
+            createTerritoryReadmeFile(dirTerritory, surveyFolder);
             System.out.println("Project " + surveyFolder + " successfully created.");
             System.out.println("Now you are ready to start processing your data!");
             System.out.println("");
-            System.out.println("Please open the file " + surveyFolder + File.separator + FILE_README);
+            System.out.println("Please open the file " + surveyFolder + "/" + FILE_README);
 
         } else {
             System.err.println("[ERROR] Could not generate project files. Folder " + surveyFolder + " already exists!");
@@ -98,15 +98,15 @@ public class GenerateEngine {
                     String dictionaries = "";
                     String prefixes = "";
                     if (!householdName.equals("")) {
-                        dictionaries += surveyFolder + File.separator + FOLDER_DICTIONARY + File.separator + householdName + ".dcf";
+                        dictionaries += surveyFolder + "/" + FOLDER_DICTIONARY + "/" + householdName + ".dcf";
                         prefixes += "h";
                     }
                     if (!listingName.equals("")) {
-                        dictionaries += "," + surveyFolder + File.separator + FOLDER_DICTIONARY + File.separator + listingName + ".dcf";
+                        dictionaries += "," + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + listingName + ".dcf";
                         prefixes += ",l";
                     }
                     if (!eaName.equals("")) {
-                        dictionaries += "," + surveyFolder + File.separator + FOLDER_DICTIONARY + File.separator + eaName + ".dcf";
+                        dictionaries += "," + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + eaName + ".dcf";
                         prefixes += ",ea";
                     }
                     bw.write("#[CSPro] List of CSPro dictionaries (household, freshlist, EA)");
@@ -121,12 +121,12 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("#[Territory] File containing the structure of the territory (codes, values)");
                     bw.newLine();
-                    bw.write("territory=" + surveyFolder + File.separator + FOLDER_TERRITORY + File.separator + FILE_TERRITORY);
+                    bw.write("territory=" + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_TERRITORY);
                     bw.newLine();
                     bw.newLine();
                     bw.write("#[CSPro] Specify CSWEB database connection parameters");
                     bw.newLine();
-                    bw.write("db.source.uri=");
+                    bw.write("db.source.uri= jdbc:mysql://server-host:server-port");
                     bw.newLine();
                     bw.write("db.source.schema=");
                     bw.newLine();
@@ -137,7 +137,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("#[Dashboard] Specify Dashboard database connection parameters");
                     bw.newLine();
-                    bw.write("db.dest.uri=");
+                    bw.write("db.dest.uri=jdbc:mysql://server-host:server-port");
                     bw.newLine();
                     bw.write("db.dest.schema=");
                     bw.newLine();
@@ -145,7 +145,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("db.dest.password=");
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    System.out.println("Created file " + surveyFolder + "/" + surveyFolder + ".properties");
                 }
             }
 
@@ -166,17 +166,17 @@ public class GenerateEngine {
                     bw.write("[PRELIMINARY STEPS]");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 1] Copy your CSPro dictionary files in the folder " + surveyFolder + File.separator + FOLDER_DICTIONARY);
+                    bw.write("[Step 1] Copy your CSPro dictionary files in the folder " + surveyFolder + "/" + FOLDER_DICTIONARY);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 2] Add cspro2sql metadata to each dictionary. Metadata guidelines are provided in " + surveyFolder + File.separator + FOLDER_DICTIONARY + File.separator + FILE_README);
+                    bw.write("[Step 2] Add cspro2sql metadata to each dictionary. Metadata guidelines are provided in " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_README);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 3] Set CSPro and Dashboard databases connection parameters in " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("[Step 3] Set CSPro and Dashboard databases connection parameters in " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 4] Copy the territory file in the folder " + surveyFolder + File.separator + FOLDER_TERRITORY + ". ");
-                    bw.write("Territory guidelines are provided in " + surveyFolder + File.separator + FOLDER_TERRITORY + File.separator + FILE_README);
+                    bw.write("[Step 4] Copy the territory file in the folder " + surveyFolder + "/" + FOLDER_TERRITORY + ". ");
+                    bw.write("Territory guidelines are provided in " + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_README);
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 5] In order to test your environment, execute the following command in a terminal:");
@@ -185,65 +185,65 @@ public class GenerateEngine {
                     bw.write("cd " + System.getProperty("user.dir"));
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e scan -p " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("cspro2sql -e scan -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
                     bw.newLine();
                     bw.write("[RUNTIME STEPS]");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 1] Generate the Dashboard database script " + surveyFolder + File.separator + FILE_SQL_MICRO);
+                    bw.write("[Step 1] Generate the Dashboard database script " + surveyFolder + "/" + FILE_SQL_MICRO);
                     bw.newLine();
                     bw.newLine();
                     bw.write("cd " + System.getProperty("user.dir"));
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e schema -p " + surveyFolder + File.separator + surveyFolder + ".properties -o " + surveyFolder + File.separator + FILE_SQL_MICRO);
+                    bw.write("cspro2sql -e schema -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_MICRO);
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 2] Create the Dashboard database. Use your favourite Mysql client or execute the following command ");
                     bw.write("(replace #root_user with the root username):");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("mysql -u #root_user -p < " + surveyFolder + File.separator + FILE_SQL_MICRO);
+                    bw.write("mysql -u #root_user -p < " + surveyFolder + "/" + FILE_SQL_MICRO);
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 3] Load CSPro data in Dashboard database (step to be repeated during fieldwork)");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e loader -p " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 4] Create and populate the territory table");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e territory -p " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("cspro2sql -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("[Step 5] Generate the Dashboard report tables script " + surveyFolder + File.separator + FILE_SQL_REPORT);
+                    bw.write("[Step 5] Generate the Dashboard report tables script " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e monitor -p " + surveyFolder + File.separator + surveyFolder + ".properties -o " + surveyFolder + File.separator + FILE_SQL_REPORT);
+                    bw.write("cspro2sql -e monitor -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 6] Create the Dashboard report tables. Use your favourite Mysql client or execute the following command");
                     bw.write("(replace #root_user with the root username):");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("mysql -u #root_user -p < " + surveyFolder + File.separator + FILE_SQL_REPORT);
+                    bw.write("mysql -u #root_user -p < " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 7] Update reports (step to be repeated during fieldwork)");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e loader -p " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e update -p " + surveyFolder + File.separator + surveyFolder + ".properties");
+                    bw.write("cspro2sql -e update -p " + surveyFolder + "/" + surveyFolder + ".properties");
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + File.separator + FILE_README);
+                    System.out.println("Created file " + surveyFolder + "/" + FILE_README);
                 }
             }
 
@@ -252,7 +252,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createHouseholdFile(File dirDictionary) {
+    private static void createHouseholdFile(File dirDictionary, String surveyFolder) {
         File properties = new File(dirDictionary, FILE_HOUSEHOLD_TEMPLATE);
         try {
             if (properties.createNewFile()) {
@@ -427,7 +427,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + dirDictionary + File.separator + FILE_HOUSEHOLD_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_HOUSEHOLD_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -435,7 +435,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createListingFile(File dirDictionary) {
+    private static void createListingFile(File dirDictionary, String surveyFolder) {
         File properties = new File(dirDictionary, FILE_LISTING_TEMPLATE);
         try {
             if (properties.createNewFile()) {
@@ -533,7 +533,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + dirDictionary + File.separator + FILE_LISTING_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_LISTING_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -541,7 +541,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createEaFile(File dirDictionary) {
+    private static void createEaFile(File dirDictionary, String surveyFolder) {
         File properties = new File(dirDictionary, FILE_EA_TEMPLATE);
         try {
             if (properties.createNewFile()) {
@@ -667,7 +667,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + dirDictionary + File.separator + FILE_EA_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_EA_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -675,7 +675,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createMetadataReadmeFile(File dirDictionary) {
+    private static void createMetadataReadmeFile(File dirDictionary, String surveyFolder) {
         File readme = new File(dirDictionary, FILE_README);
         try {
             if (readme.createNewFile()) {
@@ -781,7 +781,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + dirDictionary + File.separator + FILE_README);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_README);
                 }
             }
 
@@ -790,7 +790,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createTerritoryFile(File dirTerritory) {
+    private static void createTerritoryFile(File dirTerritory, String surveyFolder) {
         File properties = new File(dirTerritory, FILE_TERRITORY_TEMPLATE);
         try {
             if (properties.createNewFile()) {
@@ -810,7 +810,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("1;Lazio;1;Frosinone;2;Cervaro;4;004");
                     bw.close();
-                    System.out.println("Created file " + dirTerritory + File.separator + FILE_TERRITORY_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_TERRITORY_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -818,7 +818,7 @@ public class GenerateEngine {
         }
     }
 
-    private static void createTerritoryReadmeFile(File dirTerritory) {
+    private static void createTerritoryReadmeFile(File dirTerritory, String surveyFolder) {
         File readme = new File(dirTerritory, FILE_README);
         try {
             if (readme.createNewFile()) {
@@ -844,7 +844,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + dirTerritory + File.separator + FILE_README);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_README);
                 }
             }
 

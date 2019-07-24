@@ -64,10 +64,12 @@ public class SchemaEngine {
 
         for (Dictionary dictionary : dictionaries) {
             if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
+                System.out.print("Generating dashboard microdata database " + GenerateEngine.FILE_SQL_MICRO + "...");
                 SchemaWriter.writesqlserver(dictionary, foreignKeys, out);
+                System.out.print("[OK]");
             } else {
                 SchemaWriter.write(dictionary, foreignKeys, out);
-            }          
+            }
         }
         return true;
     }
