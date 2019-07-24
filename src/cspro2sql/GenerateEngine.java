@@ -32,6 +32,8 @@ public class GenerateEngine {
     public static final String FOLDER_DICTIONARY = "dictionary";
     public static final String FOLDER_TERRITORY = "territory";
     public static final String FILE_README = "README.txt";
+    public static final String FILE_README_DICTIONARY = "DICTIONARY_README.txt";
+    public static final String FILE_README_TERRITORY = "TERRITORY_README.txt";
     public static final String FILE_TERRITORY = "territory.csv";
     public static final String FILE_SQL_MICRO = "dashboard_micro.sql";
     public static final String FILE_SQL_REPORT = "dashboard_report.sql";
@@ -44,7 +46,7 @@ public class GenerateEngine {
 
     public static void main(String[] args) {
         try {
-            execute("pilot", "household", "freshlist", "eacode");
+            execute("pilot", "household", "", "");
         } catch (Exception ex) {
             System.exit(1);
         }
@@ -126,24 +128,28 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("#[CSPro] Specify CSWEB database connection parameters");
                     bw.newLine();
-                    bw.write("db.source.uri= jdbc:mysql://server-host:server-port");
+                    bw.write("db.source.server=server-host");
                     bw.newLine();
-                    bw.write("db.source.schema=");
+                    bw.write("db.source.port=server-port");
                     bw.newLine();
-                    bw.write("db.source.username=");
+                    bw.write("db.source.schema=csweb-schema");
                     bw.newLine();
-                    bw.write("db.source.password=");
+                    bw.write("db.source.username=root");
+                    bw.newLine();
+                    bw.write("db.source.password=root");
                     bw.newLine();
                     bw.newLine();
                     bw.write("#[Dashboard] Specify Dashboard database connection parameters");
                     bw.newLine();
-                    bw.write("db.dest.uri=jdbc:mysql://server-host:server-port");
+                    bw.write("db.dest.server=server-host");
                     bw.newLine();
-                    bw.write("db.dest.schema=");
+                    bw.write("db.dest.port=server-port");
                     bw.newLine();
-                    bw.write("db.dest.username=");
+                    bw.write("db.dest.schema=dashboard-schema");
                     bw.newLine();
-                    bw.write("db.dest.password=");
+                    bw.write("db.dest.username=root");
+                    bw.newLine();
+                    bw.write("db.dest.password=root");
                     bw.close();
                     System.out.println("Created file " + surveyFolder + "/" + surveyFolder + ".properties");
                 }
@@ -676,7 +682,7 @@ public class GenerateEngine {
     }
 
     private static void createMetadataReadmeFile(File dirDictionary, String surveyFolder) {
-        File readme = new File(dirDictionary, FILE_README);
+        File readme = new File(dirDictionary, FILE_README_DICTIONARY);
         try {
             if (readme.createNewFile()) {
                 FileWriter fw = new FileWriter(readme.getAbsoluteFile());
@@ -781,7 +787,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_README);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_README_DICTIONARY);
                 }
             }
 
@@ -819,7 +825,7 @@ public class GenerateEngine {
     }
 
     private static void createTerritoryReadmeFile(File dirTerritory, String surveyFolder) {
-        File readme = new File(dirTerritory, FILE_README);
+        File readme = new File(dirTerritory, FILE_README_TERRITORY);
         try {
             if (readme.createNewFile()) {
                 FileWriter fw = new FileWriter(readme.getAbsoluteFile());
@@ -844,7 +850,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_README);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_README_TERRITORY);
                 }
             }
 

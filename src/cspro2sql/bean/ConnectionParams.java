@@ -24,6 +24,7 @@ import java.util.Properties;
  */
 public class ConnectionParams {
 
+    private static final String MYSQL_JDBC = "jdbc:mysql://";
     private static final String MYSQL_PARAMS = "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
 
     private String uri;
@@ -33,7 +34,8 @@ public class ConnectionParams {
     public static ConnectionParams getSourceParams(Properties prop) {
         ConnectionParams sourceParams = new ConnectionParams();
         
-        sourceParams.setUri(prop.getProperty("db.source.uri").trim() + "/" + prop.getProperty("db.source.schema").trim() + MYSQL_PARAMS);
+        sourceParams.setUri(MYSQL_JDBC + prop.getProperty("db.source.server").trim() + ":" + prop.getProperty("db.source.port").trim() 
+                + "/" + prop.getProperty("db.source.schema").trim() + MYSQL_PARAMS);
         sourceParams.setUsername(prop.getProperty("db.source.username").trim());
         sourceParams.setPassword(prop.getProperty("db.source.password").trim());
         return sourceParams;
@@ -43,9 +45,11 @@ public class ConnectionParams {
         ConnectionParams sourceParams = new ConnectionParams();
 
         if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
-            sourceParams.setUri(prop.getProperty("db.dest.uri").trim() + ";databasename=" + prop.getProperty("db.dest.schema").trim());
+            sourceParams.setUri(MYSQL_JDBC + prop.getProperty("db.dest.server").trim() + ":" + prop.getProperty("db.dest.port").trim() 
+                    + ";databasename=" + prop.getProperty("db.dest.schema").trim());
         } else {
-            sourceParams.setUri(prop.getProperty("db.dest.uri").trim() + "/" + prop.getProperty("db.dest.schema").trim() + MYSQL_PARAMS);
+            sourceParams.setUri(MYSQL_JDBC + prop.getProperty("db.dest.server").trim() + ":" + prop.getProperty("db.dest.port").trim() 
+                    + "/" + prop.getProperty("db.dest.schema").trim() + MYSQL_PARAMS);
         }
         sourceParams.setUsername(prop.getProperty("db.dest.username").trim());
         sourceParams.setPassword(prop.getProperty("db.dest.password").trim());
