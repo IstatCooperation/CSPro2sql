@@ -52,7 +52,7 @@ public class MonitorEngine {
 
     static boolean execute(List<Dictionary> dictionaries, PrintStream out) {
         TemplateManager tmHousehold = null, tmListing = null, tmExpected = null;
-        System.out.print("Generating dashboard report tables " + GenerateEngine.FILE_SQL_REPORT + "...");
+        System.out.print("Generating dashboard report tables " + GenerateEngine.FILE_SQL_REPORT + "... ");
         for (Dictionary dictionary : dictionaries) {
             if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
                 tmHousehold = new TemplateManager(dictionary);

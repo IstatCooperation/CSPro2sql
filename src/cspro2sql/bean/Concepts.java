@@ -33,7 +33,10 @@ public class Concepts {
     public static final String AGE = "age";
     public static final String SEX = "sex";
     public static final String RELIGION = "religion";
-    
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String EXPECTED_QUEST = "expectedQuest";
+
     public static final Integer HOUSEHOLD_ID = 1;
     public static final Integer LISTING_ID = 2;
     public static final Integer EXPECTED_ID = 3;
@@ -42,23 +45,28 @@ public class Concepts {
     public static final Integer AGE_ID = 6;
     public static final Integer SEX_ID = 7;
     public static final Integer RELIGION_ID = 8;
+    public static final Integer LATITUDE_ID = 9;
+    public static final Integer LONGITUDE_ID = 10;
+    public static final Integer EXPECTED_QUEST_ID = 11;
 
-
-    private static final Map<Integer, String> conceptMap = new HashMap();
+    private static final Map<Integer, String> conceptMap = getConcepts();
 
     public static Map<Integer, String> getConcepts() {
+        Map<Integer, String> tmpMap = new HashMap<>();
 
-        conceptMap.put(HOUSEHOLD_ID, HOUSEHOLD);
-        conceptMap.put(LISTING_ID, LISTING);
-        conceptMap.put(EXPECTED_ID, EXPECTED);
-        conceptMap.put(TERRITORY_ID, TERRITORY);
-        conceptMap.put(INDIVIDUAL_ID, INDIVIDUAL);
-        conceptMap.put(AGE_ID, AGE);
-        conceptMap.put(SEX_ID, SEX);
-        conceptMap.put(RELIGION_ID, RELIGION);
+        tmpMap.put(HOUSEHOLD_ID, HOUSEHOLD);
+        tmpMap.put(LISTING_ID, LISTING);
+        tmpMap.put(EXPECTED_ID, EXPECTED);
+        tmpMap.put(TERRITORY_ID, TERRITORY);
+        tmpMap.put(INDIVIDUAL_ID, INDIVIDUAL);
+        tmpMap.put(AGE_ID, AGE);
+        tmpMap.put(SEX_ID, SEX);
+        tmpMap.put(RELIGION_ID, RELIGION);
+        tmpMap.put(LATITUDE_ID, LATITUDE);
+        tmpMap.put(LONGITUDE_ID, LONGITUDE);
+        tmpMap.put(EXPECTED_QUEST_ID, EXPECTED_QUEST);
 
-        return conceptMap;
-
+        return tmpMap;
     }
 
     public static Integer getId(String description) {
@@ -80,14 +88,13 @@ public class Concepts {
         }
         return null;
     }
-    
+
     public static Integer getId(Record record) {
         if (record.hasTag(Dictionary.TAG_INDIVIDUAL)) {
             return INDIVIDUAL_ID;
         }
         return null;
     }
-    
 
     public static Integer getId(Item item) {
         if (item.hasTag(Dictionary.TAG_TERRITORY)) {
@@ -98,8 +105,14 @@ public class Concepts {
             return SEX_ID;
         } else if (item.hasTag(Dictionary.TAG_RELIGION)) {
             return RELIGION_ID;
+        } else if (item.hasTag(Dictionary.TAG_LATITUDE)) {
+            return LATITUDE_ID;
+        } else if (item.hasTag(Dictionary.TAG_LONGITUDE)) {
+            return LONGITUDE_ID;
+        } else if (item.hasTag(Dictionary.TAG_EXPECTED_QUESTIONNAIRES)) {
+            return EXPECTED_QUEST_ID;
         }
-        
+
         return null;
     }
 }

@@ -24,7 +24,7 @@ import java.util.Properties;
  */
 public class ConnectionParams {
 
-    private static final String MYSQL_JDBC = "jdbc:mysql://";
+    public static final String MYSQL_JDBC = "jdbc:mysql://";
     private static final String MYSQL_PARAMS = "?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
 
     private String uri;

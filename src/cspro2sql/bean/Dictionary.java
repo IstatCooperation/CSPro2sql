@@ -1,6 +1,5 @@
 package cspro2sql.bean;
 
-import java.io.BufferedReader;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -109,6 +108,8 @@ public final class Dictionary extends Taggable {
     public static final Tag TAG_LISTING = new Tag("#listing");
     public static final Tag TAG_EXPECTED = new Tag("#expected");
     public static final Tag TAG_EXPECTED_QUESTIONNAIRES = new Tag("#expectedQuestionnaires");
+    public static final Tag TAG_LATITUDE = new Tag("#lat");
+    public static final Tag TAG_LONGITUDE = new Tag("#lon");
 
     private final String schema, prefix;
     private final List<Record> records = new LinkedList<>();

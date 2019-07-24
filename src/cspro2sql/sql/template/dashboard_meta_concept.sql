@@ -23,3 +23,9 @@ INSERT INTO @SCHEMA.`dashboard_meta_concept` (`ID`, `NAME`, `NOTE`, `VAR_ORDER`)
     VALUES (7, "sex" ,"Sex variable", null);
 INSERT INTO @SCHEMA.`dashboard_meta_concept` (`ID`, `NAME`, `NOTE`, `VAR_ORDER`) 
     VALUES (8, "religion" ,"Religion variable", null);
+INSERT INTO @SCHEMA.`dashboard_meta_concept` (`ID`, `NAME`, `NOTE`, `VAR_ORDER`) 
+    VALUES (9, "latitude" ,"Latitude", null);
+INSERT INTO @SCHEMA.`dashboard_meta_concept` (`ID`, `NAME`, `NOTE`, `VAR_ORDER`) 
+    VALUES (10, "longitude" ,"Longitude", null);
+INSERT INTO @SCHEMA.`dashboard_meta_concept` (`ID`, `NAME`, `NOTE`, `VAR_ORDER`) 
+    VALUES (11, "expectedQuest" ,"Expected households from cartograhpy", null);

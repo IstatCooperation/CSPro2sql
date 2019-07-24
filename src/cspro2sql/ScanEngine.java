@@ -148,6 +148,9 @@ public class ScanEngine {
         result.put(Dictionary.TAG_AGE, Boolean.TRUE);
         result.put(Dictionary.TAG_SEX, Boolean.TRUE);
         result.put(Dictionary.TAG_RELIGION, Boolean.FALSE);
+        result.put(Dictionary.TAG_EXPECTED_QUESTIONNAIRES, Boolean.FALSE);
+        result.put(Dictionary.TAG_LATITUDE, Boolean.FALSE);
+        result.put(Dictionary.TAG_LONGITUDE, Boolean.FALSE);
         result.put(Dictionary.TAG_TERRITORY, Boolean.TRUE);
 
         return result;

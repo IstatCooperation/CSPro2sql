@@ -46,7 +46,7 @@ public class GenerateEngine {
 
     public static void main(String[] args) {
         try {
-            execute("pilot", "household", "", "");
+            execute("pilot", "household", "listing", "eacode");
         } catch (Exception ex) {
             System.exit(1);
         }
@@ -433,7 +433,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_HOUSEHOLD_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_HOUSEHOLD_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -538,8 +538,50 @@ public class GenerateEngine {
                     bw.write("Note=#territory[EA, L_ID103]");
                     bw.newLine();
                     bw.newLine();
+                    bw.write("[Record]");
+                    bw.newLine();
+                    bw.write("Label=GPS");
+                    bw.newLine();
+                    bw.write("Name=GPA");
+                    bw.newLine();
+                    bw.write("RecordTypeValue='2'");
+                    bw.newLine();
+                    bw.write("RecordLen=82");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("[Item]");
+                    bw.newLine();
+                    bw.write("Label=A1_Latitude");
+                    bw.newLine();
+                    bw.write("Name=A1");
+                    bw.newLine();
+                    bw.write("Start=36");
+                    bw.newLine();
+                    bw.write("Len=13");
+                    bw.newLine();
+                    bw.write("Decimal=9");
+                    bw.newLine();
+                    bw.write("Note=#lat");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("[Item]");
+                    bw.newLine();
+                    bw.write("Label=A2_Longitude");
+                    bw.newLine();
+                    bw.write("Name=A2");
+                    bw.newLine();
+                    bw.write("Start=49");
+                    bw.newLine();
+                    bw.write("Len=13");
+                    bw.newLine();
+                    bw.write("Decimal=9");
+                    bw.newLine();
+                    bw.write("Note=#lon");
+                    bw.newLine();
+                    bw.newLine();
+
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_LISTING_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_LISTING_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -673,7 +715,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY+ "/" + FILE_EA_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_EA_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -718,6 +760,15 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.write("#religion: use this tag to mark the religion variable (check the Note in the Household_template.dcf file)");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("#expectedQuestionnaires: use this tag to mark the expected households from cartograhpy (check the Note in the EA_template.dcf file)");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("#lat: use this tag to mark the latitude of the household (check the Note in the Listing_template.dcf file)");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("#lon: use this tag to mark the longitude of the household (check the Note in the Listing_template.dcf file)");
                     bw.newLine();
                     bw.newLine();
                     bw.write("[METADATA @territory level]");

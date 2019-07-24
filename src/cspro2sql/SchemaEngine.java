@@ -62,15 +62,15 @@ public class SchemaEngine {
 
     static boolean execute(List<Dictionary> dictionaries, Properties prop, boolean foreignKeys, PrintStream out) {
 
+        System.out.print("Generating microdata database script " + GenerateEngine.FILE_SQL_MICRO + "... ");
         for (Dictionary dictionary : dictionaries) {
             if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
-                System.out.print("Generating dashboard microdata database " + GenerateEngine.FILE_SQL_MICRO + "...");
                 SchemaWriter.writesqlserver(dictionary, foreignKeys, out);
-                System.out.print("[OK]");
             } else {
                 SchemaWriter.write(dictionary, foreignKeys, out);
             }
         }
+        System.out.print("[OK]");
         return true;
     }
 

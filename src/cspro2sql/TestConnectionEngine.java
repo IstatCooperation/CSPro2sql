@@ -55,14 +55,16 @@ public class TestConnectionEngine {
         try {
             //Test source database connetcion
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-            System.out.println("Connecting to " + prop.getProperty("db.source.uri") + "/" + prop.getProperty("db.source.schema"));
+            System.out.println("Connecting to " + ConnectionParams.MYSQL_JDBC + prop.getProperty("db.source.server") + ":" + prop.getProperty("db.source.port") 
+                    +  "/" + prop.getProperty("db.source.schema"));
             ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
             try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                 connSrc.setReadOnly(true);
                 System.out.println("Connection successful!");
 
                 //Connect to the destination database
-                System.out.println("Connecting to " + prop.getProperty("db.dest.uri") + "/" + prop.getProperty("db.dest.schema"));
+                System.out.println("Connecting to " + ConnectionParams.MYSQL_JDBC + prop.getProperty("db.dest.server") + ":" + prop.getProperty("db.dest.port") 
+                        + "/" + prop.getProperty("db.dest.schema"));
                 if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
                     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                 } 

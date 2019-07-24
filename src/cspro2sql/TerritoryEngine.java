@@ -84,7 +84,7 @@ public class TerritoryEngine {
                     connSrc.setAutoCommit(false);
                     try (Statement stmt = connSrc.createStatement()) {
                         if (createTerritoryTable(dictionary, stmt, prop) && truncateTerritory(stmt, prop)) {
-                            System.out.println("Loading territory table...");
+                            System.out.print("Loading territory table... ");
                             String insertQuery = "INSERT INTO " + prop.getProperty("db.dest.schema") + ".`territory` VALUES(";
                             String insertValues = "";
                             String territoryCode = "";
@@ -113,7 +113,7 @@ public class TerritoryEngine {
                             }
                         }
                         connSrc.commit();
-                        System.out.println("\nTerritory table successfully loaded! ");
+                        System.out.print("[OK]");
                     }
                 }
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
