@@ -240,36 +240,28 @@ To monitor the loader activity run:
 
 ## Metadata
 
-In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. The list of metadata is provided below:
+In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. Metadata are classified in:
+
+* `dictionary`:  these metadata are used to mark dictionaries (household, listing, ea) and to mark `individual` record
+* `variable`:  the metadata are used to mark variables (i.e. sex, age, latitude, longitude, etc.)
+* `territory`:  the metadata are used to mark the territory structure
+
+The list of metadata is provided below:
 
 ```
-METADATA @dictionary level]
+[dictionary]
+#household: use this tag to mark the household dictionary [MANDATORY]
+#individual: use this tag to mark the individual table [MANDATORY]
+#listing: use this tag to mark the listing dictionary 
+#expected: use this tag to mark the EA code dictionary
 
-#household: use this tag to mark the household dictionary (check the 'Note=#fieldwork' in the Household_template.dcf file)
-
-#individual: use this tag to mark the individual table (check the 'Note=#individual' in the Household_template.dcf file)
-
-#listing: use this tag to mark the listing dictionary (check the 'Note=#listing' in the Listing_template.dcf file)
-
-#expected: use this tag to mark the EA code dictionary (check the 'Note=#expected' in the Eacode_template.dcf file)
-
-#household and #individual tags are MANDATORY
-
-[METADATA @variable level]
-
-#age: use this tag to mark the age variable. It is also necessary to specify the range of variable (check the 'Note=#age' in the Household_template.dcf file)
-
-#sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values (check the 'Note=#sex' in the Household_template.dcf file)
-
-#religion: use this tag to mark the religion variable (check the Note in the Household_template.dcf file)
-
-#expectedQuestionnaires: use this tag to mark the expected households from cartograhpy (check the Note in the EA_template.dcf file)
-
-#lat: use this tag to mark the latitude of the household (check the Note in the Listing_template.dcf file)
-
-#lon: use this tag to mark the longitude of the household (check the Note in the Listing_template.dcf file)
-
-[METADATA @territory level]
+[variable]
+#age: use this tag to mark the age variable. It is also necessary to specify the range of variable.
+#sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values.
+#religion: use this tag to mark the religion variable
+#expectedQuestionnaires: use this tag to mark the expected households from cartograhpy
+#lat: use this tag to mark the latitude of the household
+#lon: use this tag to mark the longitude of the household
 ```
 
 
