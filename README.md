@@ -72,33 +72,31 @@ Parameters:
 
 In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
 
-[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+```
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=test/dictionary/household.dcf
 
-`dictionary`: List of CsPro 7 dictionary files (household, freshlist, EA)
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h
 
-[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
 
-`dictionary.prefix`: Table prefixes in Dashboard database (h, f, ea)
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=bdcivcensus2019
+db.source.username=root
+db.source.password=root
 
-[Territory] File containing territory data (codes, values)
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=test2
+db.dest.username=root
+db.dest.password=root
+```
 
-`territory`: File containing territory data (codes, names)
-
-[CSPro] Specify CSWEB database connection parameters
-`db.source.server`: CsPro 7 database server name or ip address
-`db.source.port`: CsPro 7 database server port
-`db.source.schema`: CsPro 7 database schema
-`db.source.username`: CsPro 7 database username
-`db.source.password`: CsPro 7 database password
-
-[Dashboard] Specify Dashboard database connection parameters
-
-`db.dest.server`: Dashboard database server name or ip address
-`db.dest.port`: Dashboard database server port
-`db.dest.schema`: Dashboard database schema
-`db.dest.username`: Dashboard database server username
-`db.dest.password`: Dashboard database server password
-`db.dest.table.prefix`: microdata MySQL table prefix
 
 Within this configuration CsPro2Sql reads the CsPro-Dictionary from CsPro 7.0 database. It is also possible to specify a CsPro-Dictionary file:
 
