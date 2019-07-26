@@ -257,17 +257,15 @@ The list of metadata is provided below:
 
 
 **Variable metadata**
-```
-#age: use this tag to mark the age variable. It is also necessary to specify the range of variable.
-#sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values.
-#religion: use this tag to mark the religion variable
-#expectedQuestionnaires: use this tag to mark the expected households from cartograhpy
-#lat: use this tag to mark the latitude of the household
-#lon: use this tag to mark the longitude of the household
-```
 
+* `age`:  use this tag to mark the age variable. It is also necessary to specify the range of variable [MANDATORY]
+* `sex`:  use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values [MANDATORY]
+* `religion`:  use this tag to mark the religion variable
+* `expectedQuestionnaires`:  use this tag to mark the expected households from cartograhpy
+* `lat`:  use this tag to mark the latitude of the household
+* `lon`:  use this tag to mark the longitude of the household
 
-## Territory
+**Variable metadata**
 
 ## Acknowledgement
 The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
