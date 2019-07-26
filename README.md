@@ -238,6 +238,43 @@ To monitor the loader activity run:
 * The CsPro tag `[Relation]` is ignored
 * A `ValueSet` with more than 1000 elements is ignored (the threshold will be parameterized in future realesed)
 
+## Metadata
+
+In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. The list of metadata is provided below:
+
+```
+METADATA @dictionary level]
+
+#household: use this tag to mark the household dictionary (check the 'Note=#fieldwork' in the Household_template.dcf file)
+
+#individual: use this tag to mark the individual table (check the 'Note=#individual' in the Household_template.dcf file)
+
+#listing: use this tag to mark the listing dictionary (check the 'Note=#listing' in the Listing_template.dcf file)
+
+#expected: use this tag to mark the EA code dictionary (check the 'Note=#expected' in the Eacode_template.dcf file)
+
+#household and #individual tags are MANDATORY
+
+[METADATA @variable level]
+
+#age: use this tag to mark the age variable. It is also necessary to specify the range of variable (check the 'Note=#age' in the Household_template.dcf file)
+
+#sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values (check the 'Note=#sex' in the Household_template.dcf file)
+
+#religion: use this tag to mark the religion variable (check the Note in the Household_template.dcf file)
+
+#expectedQuestionnaires: use this tag to mark the expected households from cartograhpy (check the Note in the EA_template.dcf file)
+
+#lat: use this tag to mark the latitude of the household (check the Note in the Listing_template.dcf file)
+
+#lon: use this tag to mark the longitude of the household (check the Note in the Listing_template.dcf file)
+
+[METADATA @territory level]
+```
+
+
+## Territory
+
 ## Acknowledgement
 The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
 
