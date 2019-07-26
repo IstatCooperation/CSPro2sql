@@ -132,7 +132,7 @@ db.dest.password=root
 
 ## Execution steps
 
-![new engine](https://img.shields.io/badge/new-engine-brightgreen) Engine generate
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) ** -Engine generate**
 
 Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
 
@@ -162,7 +162,7 @@ Please open the file pilot/README.txt
 
 The `README.txt` file in the root folder of the project, provides a step by step guide. 
 
-![new engine](https://img.shields.io/badge/new-engine-brightgreen) Engine scan
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **-Engine scan**
 
 At the end of the `[PRELIMINARY STEPS]` execute the scan engine:
 
