@@ -24,8 +24,8 @@ CsPro2Sql is simple to install: all you need is to download and unzip the `CsPro
 
 CsPro2Sql is composed of several engines (run `CsPro2Sql` to get usage info):
 ```
-CsPro2Sql -e generate   -p SURVEY_NAME [-hh HOUSEHOLD_QUEST] [-l LISTING_QUEST] [-ea EA_QUEST] ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
-CsPro2Sql -e scan       -p PROPERTIES_FILE ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
+CsPro2Sql -e generate   -p SURVEY_NAME [-hh HOUSEHOLD_QUEST] [-l LISTING_QUEST] [-ea EA_QUEST]
+CsPro2Sql -e scan       -p PROPERTIES_FILE
 CsPro2Sql -e schema     -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]
 CsPro2Sql -e loader     -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]
 CsPro2Sql -e monitor    -p PROPERTIES_FILE [-o OUTPUT_FILE]
@@ -39,12 +39,16 @@ CsPro2Sql -e connection -p PROPERTIES_FILE
 Engines description:
 
 * `generate`:  generates a cspro2sql project (files and folders needed to execute cspro2sql engines)
-* `scan`:  check input data, metadata, terrotory structure and database connections
+* `scan`:  check input data, metadata, territory structure and database connections
 * `schema`:  to create the microdata MySQL script
 * `loader`:  to transfer data from the CsPro 7.0 database to the microdata MySQL database
 * `monitor`: to create the dashboard MySQL script
 * `update`:  to update the dashboard report data
 * `status`:  to check the loader engine status
+* `territory`:  generates the territory table and uploads data from territory.csv file
+* `LU`:  load & update (invoked the loader & update engines)
+* `connection`:  tests source/destination database connection
+
 
 Parameters:
 ```
@@ -52,9 +56,12 @@ Parameters:
  -cc,--check-constraints   perform constraints check
  -co,--check-only          perform only constraints check (no data transfer)
  -e,--engine <arg>         select engine: [loader|schema|monitor|update|status]
+ -ea,--enum area <arg>     name of enumeration area dictionary file
  -f,--force                skip check of loader multiple running instances
  -fk,--foreign-keys        create foreign keys to value sets
  -h,--help                 display this help
+ -hh,--household <arg>     name of household dictionary file (dafault value is 'household')
+ -l,--listing <arg>        name of listing dictionary file
  -o,--output <arg>         name of the output file
  -p,--properties <arg>     properties file
  -r,--recovery             recover a broken session of the loader
@@ -65,15 +72,22 @@ Parameters:
 
 In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
 
-* `db.source.uri`: CsPro 7.0 database connection string
-* `db.source.schema`: CsPro 7.0 database schema
-* `db.source.username`: CsPro 7.0 database username
-* `db.source.password`: CsPro 7.0 database password
-* `db.source.data.table`: CsPro 7.0 table containing questionnaires plain data
-* `db.dest.uri`: microdata MySQL connection string
-* `db.dest.schema`: microdata MySQL schema
-* `db.dest.username`: microdata MySQL username
-* `db.dest.password`: microdata MySQL password
+* `dictionary`: List of CsPro 7 dictionary files (household, freshlist, EA)
+* `dictionary.prefix`: Table prefixes in Dashboard database (h, f, ea)
+
+* `territory`: File containing territory data (codes, names)
+
+* `db.source.server`: CsPro 7 database server name or ip address
+* `db.source.port`: CsPro 7 database server port
+* `db.source.schema`: CsPro 7 database schema
+* `db.source.username`: CsPro 7 database username
+* `db.source.password`: CsPro 7 database password
+
+* `db.dest.server`: Dashboard database server name or ip address
+* `db.dest.port`: Dashboard database server port
+* `db.dest.schema`: Dashboard database schema
+* `db.dest.username`: Dashboard database server username
+* `db.dest.password`: Dashboard database server password
 * `db.dest.table.prefix`: microdata MySQL table prefix
 
 Within this configuration CsPro2Sql reads the CsPro-Dictionary from CsPro 7.0 database. It is also possible to specify a CsPro-Dictionary file:
