@@ -238,11 +238,6 @@ To monitor the loader activity run:
 > CsPro2Sql -e status -p Household.properties
 ```
 
-## Warnings
-
-* The CsPro tag `[Relation]` is ignored
-* A `ValueSet` with more than 1000 elements is ignored (the threshold will be parameterized in future realesed)
-
 ## Metadata
 
 In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. Metadata are classified in:
@@ -307,6 +302,17 @@ Label=104 EA
 Name=ID104
 Note=#territory[EA, ID103]
 ```
+
+The territory.csv file should have the following columns:
+```
+Region; Region_NAME; Province; Province_NAME; Commune; Commune_NAME; EA; EA_NAME
+```
+
+## Warnings
+
+* The CsPro tag `[Relation]` is ignored
+* A `ValueSet` with more than 1000 elements is ignored (the threshold will be parameterized in future realesed)
+
 
 ## Acknowledgement
 The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
