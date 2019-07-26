@@ -163,9 +163,9 @@ Please open the file pilot/README.txt
 
 The `README.txt` file in the root folder of the project, provides a step by step guide. 
 
-The files `Household_template.dcf` and `Listing_template.dcf`, in the `dictionary` folder provide examples on cspro2sql metadata (a detailed description in provided in section Metadata).
+The files `Household_template.dcf` and `Listing_template.dcf`, in the `dictionary` folder, provide examples on cspro2sql metadata (a detailed description in provided in section Metadata).
 
-The file `territory_template.dcf`, in the `territory` folder provide examples on the territory data (a detailed description in provided in section Territory).
+The file `territory_template.dcf`, in the `territory` folder, provides examples on the territory data (a detailed description in provided in section Territory).
 
 
 ![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine scan**
@@ -191,10 +191,10 @@ Tag #sex: OK (DENOMBREMENT_DICT)
 Tag #religion: MISSING
 Tag #territory: OK (DENOMBREMENT_DICT)
 Territory structure variable[label]
-REGION[REGION] -> DEPART[DEPARTMENT] -> SOUSPREFID[SOUSPREFECTURE] -> P04[COMMUNE] -> P05[ZONE] -> P08[MILIEU]
+ID101[REGION] -> ID102[PROVINCE] -> ID103[COMMUNE] -> ID104[EA]
 [Territory]
 - File pilot/territory/territory.csv: OK
-REGION -> REGION_NAME -> DEPARTMENT -> DEPARTMENT_NAME -> SOUSPREFECTURE -> SOUSPREFECTURE_NAME -> COMMUNE -> COMMUNE_NAME -> ZONE -> ZONE_NAME -> MILIEU -> MILIEU_NAME
+REGION -> REGION_NAME -> PROVINCE -> PROVINCE_NAME -> COMMUNE -> COMMUNE_NAME -> EA -> EA_NAME
 Territory file matches metadata. It is possible to generate the territory table!
 [Database]
 Connecting to jdbc:mysql://localhost:3307/csweb
@@ -270,7 +270,43 @@ The list of metadata is provided below:
 * `lat`:  use this tag to mark the latitude of the household
 * `lon`:  use this tag to mark the longitude of the household
 
-**Variable metadata**
+**Territory metadata**
+
+The territory metadata allow to specify the territorial hierarchy. Suppose that your hierarchy is the following:
+
+Region -> Province -> Commune -> EA
+
+Further let us suppose that in your Household dictionary the variables related to your territory structure are:
+
+```
+ID101 -> Region
+ID102 -> Province
+ID103 -> Commune
+ID104 -> EA
+```
+In order to bind variables and territorial hiedarchy it is necessary to add the following notes (check the Household_template.dcf file):
+
+```
+[Item]
+Label=101 Region
+Name=ID101
+Note=#territory[Region]
+
+[Item]
+Label=102 Province
+Name=ID102
+Note=#territory[Province, ID101]
+
+[Item]
+Label=103 Commune
+Name=ID103
+Note=#territory[Commune, ID102]
+
+[Item]
+Label=104 EA
+Name=ID104
+Note=#territory[EA, ID103]
+```
 
 ## Acknowledgement
 The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
