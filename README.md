@@ -24,15 +24,22 @@ CsPro2Sql is simple to install: all you need is to download and unzip the `CsPro
 
 CsPro2Sql is composed of several engines (run `CsPro2Sql` to get usage info):
 ```
-CsPro2Sql -e schema  -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]
-CsPro2Sql -e loader  -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]
-CsPro2Sql -e monitor -p PROPERTIES_FILE [-o OUTPUT_FILE]
-CsPro2Sql -e update  -p PROPERTIES_FILE
-CsPro2Sql -e status  -p PROPERTIES_FILE
+CsPro2Sql -e generate   -p SURVEY_NAME [-hh HOUSEHOLD_QUEST] [-l LISTING_QUEST] [-ea EA_QUEST] ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
+CsPro2Sql -e scan       -p PROPERTIES_FILE ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
+CsPro2Sql -e schema     -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]
+CsPro2Sql -e loader     -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]
+CsPro2Sql -e monitor    -p PROPERTIES_FILE [-o OUTPUT_FILE]
+CsPro2Sql -e update     -p PROPERTIES_FILE
+CsPro2Sql -e status     -p PROPERTIES_FILE
+CsPro2Sql -e territory  -p PROPERTIES_FILE
+CsPro2Sql -e LU         -p PROPERTIES_FILE
+CsPro2Sql -e connection -p PROPERTIES_FILE
 ```
 
 Engines description:
 
+* `generate`:  generates a cspro2sql project (files and folders needed to execute cspro2sql engines)
+* `scan`:  check input data, metadata, terrotory structure and database connections
 * `schema`:  to create the microdata MySQL script
 * `loader`:  to transfer data from the CsPro 7.0 database to the microdata MySQL database
 * `monitor`: to create the dashboard MySQL script
