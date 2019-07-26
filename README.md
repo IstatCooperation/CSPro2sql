@@ -140,7 +140,8 @@ Suppose you want to store data collected in a pilot survey (the dictionaries are
 > cspro2sql -e generate -s pilot -hh household -l listing
 ```
 
-Cspro2sql will generate a set of files and folders to support the configuration activities. The output of the command will be:
+Cspro2sql will generate a set of files and folders to support the configuration activities. 
+The output of the command will be:
 
 ```
 Starting generation of project pilot
@@ -164,12 +165,12 @@ The `README.txt` file in the root folder of the project, provides a step by step
 
 ![new engine](https://img.shields.io/badge/new-engine-brightgreen) **-Engine scan**
 
-At the end of the `[PRELIMINARY STEPS]` execute the scan engine:
+At the end of the `[PRELIMINARY STEPS]` described in the `README.txt`, execute the scan engine:
 
 ```
 cspro2sql -e scan -p test/test.properties
 ```
-If you set everithing according to the step by step guide, you should get the following output:
+If you have set everything according to the step-by-step guide, you should get the following output:
 
 ```
 Starting property file scan...
@@ -197,6 +198,8 @@ Connecting to jdbc:mysql://localhost:3307/dashboard
 Connection successful!
 ...scanning completed!
 ```
+
+Now you are ready to generate the microdata database and store CSPro data.
 
 ```
 > CsPro2Sql -e schema -p Household.properties –o microdata.sql
