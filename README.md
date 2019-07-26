@@ -104,8 +104,6 @@ Optional properties are:
 
 *Note: the source CsPro 7.0 database and the microdata MySQL could be the same*
 
-## Example
-
 Example of properties file (eg. `household.properties`):
 ```
 #[CSPro] List of CSPro dictionaries (household, freshlist, EA)
@@ -132,7 +130,7 @@ db.dest.username=root
 db.dest.password=root
 ```
 
-Execution steps:
+## Execution steps:
 
 First of all generate a new cspro2sql project 
 
