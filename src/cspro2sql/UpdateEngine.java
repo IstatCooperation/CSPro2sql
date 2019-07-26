@@ -2,6 +2,7 @@ package cspro2sql;
 
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Report;
+import cspro2sql.utils.Utility;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -10,8 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Copyright 2017 ISTAT
@@ -53,6 +53,7 @@ public class UpdateEngine {
 
     static boolean execute(Properties prop) {
         String schema = prop.getProperty("db.dest.schema").trim();
+        Long start, stop;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 
@@ -65,13 +66,16 @@ public class UpdateEngine {
                     try (Statement writeDst = connDst.createStatement()) {
                         try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE != " + Report.REPORT_TYPE_GIS + " AND IS_VISIBLE = 1")) {
                             while (rs.next()) {
-                                String template = rs.getString(4);
+                                String template = rs.getString(4); //GET REPORT NAME
+                                start = System.currentTimeMillis();
                                 System.out.print("Updating " + template + "... ");
                                 writeDst.executeUpdate("DROP TABLE IF EXISTS " + schema + ".m" + template);
                                 writeDst.executeQuery("SELECT 0 INTO @ID");
                                 writeDst.executeUpdate("CREATE TABLE " + schema + ".m" + template + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + template + ".* FROM " + schema + "." + template);
                                 connDst.commit();
-                                System.out.println("done");
+                                stop = System.currentTimeMillis();
+                                System.out.print("done");
+                                System.out.println(" [" + Utility.convertMillis(stop - start) + "]");
                             }
                         }
                         updateDashboardStatus(connDst, schema);

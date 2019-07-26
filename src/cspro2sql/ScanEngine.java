@@ -6,7 +6,6 @@ import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.TerritoryReader;
-import static cspro2sql.reader.TerritoryReader.parseTerritoryStructure;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,7 +85,7 @@ public class ScanEngine {
                     checkTags(dictionary);
                     if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
                         System.out.println("Territory structure variable[label]");
-                        territoryStructure = parseTerritoryStructure(dictionary);
+                        territoryStructure = TerritoryReader.parseTerritoryStructure(dictionary);
                         boolean isFirst = true;
                         for (TerritoryItem terrItem : territoryStructure.getItemsList()) {
                             if (isFirst) {

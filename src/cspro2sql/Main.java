@@ -42,7 +42,7 @@ import org.apache.commons.cli.ParseException;
  */
 public class Main {
 
-    private static final String VERSION = "0.9.5";
+    private static final String VERSION = "1.0";
     private static final Logger LOGGER = Logger.getLogger(LoaderEngine.class.getName());
 
     public static void main(String[] args) {

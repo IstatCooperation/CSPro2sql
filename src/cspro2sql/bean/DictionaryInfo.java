@@ -1,5 +1,6 @@
 package cspro2sql.bean;
 
+import cspro2sql.utils.Utility;
 import java.io.PrintStream;
 import java.util.Arrays;
 
@@ -145,11 +146,12 @@ public class DictionaryInfo {
         }
     }
 
-    public void printShort(PrintStream out) {
+    public void printShort(PrintStream out, Long millis) {
         out.println("Loaded: " + loaded);
         out.println("Deleted: " + deleted);
         out.println("Errors: " + errors);
         out.println("Total: " + total);
+        out.println("Time: " + Utility.convertMillis(millis));
     }
 
 }
