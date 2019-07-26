@@ -1,4 +1,4 @@
-# CSPro2Sql https://img.shields.io/badge/new-release%201.0-brightgreen
+# CSPro2Sql|https://img.shields.io/badge/new-release%201.0-brightgreen
 
 CsPro2Sql is a Java application to migrate questionnaires from [CsPro 7.0](http://www.csprousers.org/beta/) to a MySQL database.
 
