@@ -141,7 +141,7 @@ public class Main {
         options.addOption("s", "survey", true, "name of the survey to be analyzed");
         options.addOption("hh", "household", true, "name of household dictionary file");
         options.addOption("l", "listing", true, "name of listing dictionary file");
-        options.addOption("ea", "enumeration area", true, "name of enumenration area dictionary file");
+        options.addOption("ea", "enumeration area", true, "name of enumeration area dictionary file");
 
         boolean loadProperties = true;
 

@@ -37,9 +37,9 @@ public class GenerateEngine {
     public static final String FILE_TERRITORY = "territory.csv";
     public static final String FILE_SQL_MICRO = "dashboard_micro.sql";
     public static final String FILE_SQL_REPORT = "dashboard_report.sql";
-    public static final String FILE_HOUSEHOLD_TEMPLATE = "Household_template.dcf";
-    public static final String FILE_LISTING_TEMPLATE = "Listing_template.dcf";
-    public static final String FILE_EA_TEMPLATE = "Eacode_template.dcf";
+    public static final String FILE_HOUSEHOLD_TEMPLATE = "household_template.dcf";
+    public static final String FILE_LISTING_TEMPLATE = "listing_template.dcf";
+    public static final String FILE_EA_TEMPLATE = "eacode_template.dcf";
     public static final String FILE_TERRITORY_TEMPLATE = "territory_template.csv";
 
     private static final Logger LOGGER = Logger.getLogger(GenerateEngine.class.getName());
@@ -121,7 +121,7 @@ public class GenerateEngine {
                     bw.write("dictionary.prefix=" + prefixes);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("#[Territory] File containing the structure of the territory (codes, values)");
+                    bw.write("#[Territory] File containing territory data (codes, names)");
                     bw.newLine();
                     bw.write("territory=" + surveyFolder + "/" + FOLDER_TERRITORY + "/" + FILE_TERRITORY);
                     bw.newLine();
