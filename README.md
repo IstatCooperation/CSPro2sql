@@ -132,7 +132,7 @@ db.dest.password=root
 
 ## Execution steps
 
-![new engine](https://img.shields.io/badge/new-engine-brightgreen) ** -Engine generate**
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **-Engine generate**
 
 Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
 
