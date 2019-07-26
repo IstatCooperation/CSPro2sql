@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS @SCHEMA.`dashboard_report` (
 INSERT INTO @SCHEMA.`dashboard_report` (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) 
     VALUES ("Territory", "Territorial hierarchy", "", 1, 1, 3);
 INSERT INTO @SCHEMA.`dashboard_report` (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) 
-    VALUES ("Maps", "GIS maps", "", 2, 0, 3);
+    VALUES ("Maps", "GIS maps", "", 2, 1, 3);
