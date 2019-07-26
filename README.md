@@ -132,15 +132,15 @@ db.dest.password=root
 
 ## Execution steps
 
-First of all generate a cspro2sql project ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
+Engine generate ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
 
-Suppose you want to store in the dashboard database data collected in a pilot survey (the dictionaries are household and listing)
+Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
 
 ```
 > cspro2sql -e generate -s pilot -hh household -l listing
 ```
 
-The output of the command will be:
+Cspro2sql will generate a set of files and folders to support the configuration activities. The output of the command will be:
 
 ```
 Starting generation of project pilot
@@ -160,9 +160,13 @@ Now you are ready to start processing your data!
 Please open the file pilot/README.txt
 ```
 
-cspro2sql will generate a set of folders, readme and template files to help you configuring data and metadata needed by the other engines. 
+The `README.txt` file in the root folder of the project, provides a step by step guide. 
 
-In order to generate the dashboard database and store microdata you have to define a set of metadata (database connection properties, variable tags, etc.). The `README.txt` file in the root folder of the project, provides a step by step guide.
+At the end of the `[PRELIMINARY STEPS]` execute the stats engine:
+
+```
+cspro2sql -e scan -p test/test.properties
+```
 
 ```
 > CsPro2Sql -e schema -p Household.properties –o microdata.sql
