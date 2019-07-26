@@ -132,7 +132,7 @@ db.dest.password=root
 
 ## Execution steps
 
-Engine generate ![new engine](https://img.shields.io/badge/new-engine-brightgreen)
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) Engine generate
 
 Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
 
@@ -162,10 +162,40 @@ Please open the file pilot/README.txt
 
 The `README.txt` file in the root folder of the project, provides a step by step guide. 
 
-At the end of the `[PRELIMINARY STEPS]` execute the stats engine:
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) Engine scan
+
+At the end of the `[PRELIMINARY STEPS]` execute the scan engine:
 
 ```
 cspro2sql -e scan -p test/test.properties
+```
+If you set everithing according to the step by step guide, you should get the following output:
+
+```
+Starting property file scan...
+[Dictionaries]
+- File pilot/dictionary/household.dcf: OK
+[Metadata]
+Tag #household: OK (DENOMBREMENT_DICT)
+Tag #listing: MISSING
+Tag #expected: MISSING
+Tag #individual: OK (DENOMBREMENT_DICT)
+Tag #age: OK (DENOMBREMENT_DICT)
+Tag #sex: OK (DENOMBREMENT_DICT)
+Tag #religion: MISSING
+Tag #territory: OK (DENOMBREMENT_DICT)
+Territory structure variable[label]
+REGION[REGION] -> DEPART[DEPARTMENT] -> SOUSPREFID[SOUSPREFECTURE] -> P04[COMMUNE] -> P05[ZONE] -> P08[MILIEU]
+[Territory]
+- File pilot/territory/territory.csv: OK
+REGION -> REGION_NAME -> DEPARTMENT -> DEPARTMENT_NAME -> SOUSPREFECTURE -> SOUSPREFECTURE_NAME -> COMMUNE -> COMMUNE_NAME -> ZONE -> ZONE_NAME -> MILIEU -> MILIEU_NAME
+Territory file matches metadata. It is possible to generate the territory table!
+[Database]
+Connecting to jdbc:mysql://localhost:3307/csweb
+Connection successful!
+Connecting to jdbc:mysql://localhost:3307/dashboard
+Connection successful!
+...scanning completed!
 ```
 
 ```
