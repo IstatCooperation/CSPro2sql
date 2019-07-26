@@ -243,19 +243,22 @@ To monitor the loader activity run:
 In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. Metadata are classified in:
 
 * `dictionary`:  these metadata are used to mark dictionaries (household, listing, ea) and to mark `individual` record
-* `variable`:  the metadata are used to mark variables (i.e. sex, age, latitude, longitude, etc.)
-* `territory`:  the metadata are used to mark the territory structure
+* `variable`:  these metadata are used to mark variables (i.e. sex, age, latitude, longitude, etc.)
+* `territory`:  these metadata are used to mark the territory structure
 
 The list of metadata is provided below:
 
+**Dictionary**
+
 ```
-[dictionary]
 #household: use this tag to mark the household dictionary [MANDATORY]
 #individual: use this tag to mark the individual table [MANDATORY]
 #listing: use this tag to mark the listing dictionary 
 #expected: use this tag to mark the EA code dictionary
+```
 
-[variable]
+**Dictionary**
+```
 #age: use this tag to mark the age variable. It is also necessary to specify the range of variable.
 #sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values.
 #religion: use this tag to mark the religion variable
