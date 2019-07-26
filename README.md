@@ -132,7 +132,7 @@ db.dest.password=root
 
 ## Execution steps
 
-![new engine](https://img.shields.io/badge/new-engine-brightgreen) **-Engine generate**
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine generate**
 
 Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
 
@@ -163,12 +163,12 @@ Please open the file pilot/README.txt
 
 The `README.txt` file in the root folder of the project, provides a step by step guide. 
 
-![new engine](https://img.shields.io/badge/new-engine-brightgreen) **-Engine scan**
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine scan**
 
 At the end of the `[PRELIMINARY STEPS]` described in the `README.txt`, execute the scan engine:
 
 ```
-cspro2sql -e scan -p test/test.properties
+> cspro2sql -e scan -p test/test.properties
 ```
 If you have set everything according to the step-by-step guide, you should get the following output:
 
@@ -199,13 +199,34 @@ Connection successful!
 ...scanning completed!
 ```
 
+**Engine schema & loader**
+
 Now you are ready to generate the microdata database and store CSPro data.
 
 ```
-> CsPro2Sql -e schema -p Household.properties –o microdata.sql
+> cspro2sql -e schema -p Household.properties –o microdata.sql
 > mysql -u dstUsername -p < microdata.sql
-> CsPro2Sql -e loader -p Household.properties –cc
+> cspro2sql -e loader -p Household.properties –cc
 ```
+
+**Engine territory**
+
+Generate and populate the territory table.
+
+```
+> cspro2sql -e territory -p test/test.properties
+```
+
+**Engine monitor & update**
+
+Generate report tables and calculate reports.
+
+```
+> cspro2sql -e monitor -p test/test.properties -o test/dashboard_report.sql
+> mysql -u dstUsername -p < test/dashboard_report.sql
+> cspro2sql -e update -p test/test.properties
+```
+
 
 To monitor the loader activity run:
 ```
