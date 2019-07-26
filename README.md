@@ -73,12 +73,15 @@ Parameters:
 In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
 
 [CSPro] List of CSPro dictionaries (household, freshlist, EA)
+
 `dictionary`: List of CsPro 7 dictionary files (household, freshlist, EA)
 
 [Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+
 `dictionary.prefix`: Table prefixes in Dashboard database (h, f, ea)
 
 [Territory] File containing territory data (codes, values)
+
 `territory`: File containing territory data (codes, names)
 
 [CSPro] Specify CSWEB database connection parameters
@@ -89,6 +92,7 @@ In order to run CsPro2Sql engines it is necessary to configure a properties file
 `db.source.password`: CsPro 7 database password
 
 [Dashboard] Specify Dashboard database connection parameters
+
 `db.dest.server`: Dashboard database server name or ip address
 `db.dest.port`: Dashboard database server port
 `db.dest.schema`: Dashboard database schema
