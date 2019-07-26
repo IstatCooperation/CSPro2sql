@@ -315,7 +315,9 @@ Region; Region_NAME; Province; Province_NAME; Commune; Commune_NAME; EA; EA_NAME
 
 
 ## Acknowledgement
-The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
+The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/).
+
+The first release of cspro2sql has been developed in the framework of the Capacity building project in Ethiopia (fourth Population and Housing Census), funded by AICS
 
 ## License
 CSPro2Sql is EUPL-licensed
