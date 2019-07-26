@@ -150,8 +150,8 @@ Created folder pilot/dictionary
 Created folder pilot/territory
 Created file pilot/pilot.properties
 Created file pilot/README.txt
-Created file pilot/dictionary/Household_template.dcf
-Created file pilot/dictionary/Listing_template.dcf
+Created file pilot/dictionary/household_template.dcf
+Created file pilot/dictionary/listing_template.dcf
 Created file pilot/dictionary/README.txt
 Created file pilot/territory/territory_template.csv
 Created file pilot/territory/README.txt
@@ -162,6 +162,11 @@ Please open the file pilot/README.txt
 ```
 
 The `README.txt` file in the root folder of the project, provides a step by step guide. 
+
+The files `Household_template.dcf` and `Listing_template.dcf`, in the `dictionary` folder provide examples on cspro2sql metadata (a detailed description in provided in section Metadata).
+
+The file `territory_template.dcf`, in the `territory` folder provide examples on the territory data (a detailed description in provided in section Territory).
+
 
 ![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine scan**
 
