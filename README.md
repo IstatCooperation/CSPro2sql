@@ -248,16 +248,15 @@ In order to generate dashboard reports it is necessary to add metadata to CSPro 
 
 The list of metadata is provided below:
 
-**Dictionary**
+**Dictionary metadata**
 
-```
-#household: use this tag to mark the household dictionary [MANDATORY]
-#individual: use this tag to mark the individual table [MANDATORY]
-#listing: use this tag to mark the listing dictionary 
-#expected: use this tag to mark the EA code dictionary
-```
+* `household`:  use this tag to mark the household dictionary [MANDATORY]
+* `individual`:  use this tag to mark the individual table [MANDATORY]
+* `listing`:  use this tag to mark the listing dictionary 
+* `expected`:  use this tag to mark the EA code dictionary
 
-**Dictionary**
+
+**Variable metadata**
 ```
 #age: use this tag to mark the age variable. It is also necessary to specify the range of variable.
 #sex: use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values.
