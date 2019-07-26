@@ -97,11 +97,6 @@ db.dest.username=root
 db.dest.password=root
 ```
 
-
-Within this configuration CsPro2Sql reads the CsPro-Dictionary from CsPro 7.0 database. It is also possible to specify a CsPro-Dictionary file:
-
-* `dictionary.filename`: the path to the CsPro-Dictionary file
-
 Optional properties are:
 
 * `multiple.response`: list of items to be considered as a multiple answer (comma separated)
@@ -111,24 +106,61 @@ Optional properties are:
 
 ## Example
 
-Example of properties file (eg. `Household.properties`):
+Example of properties file (eg. `household.properties`):
 ```
-# Source CsPro database
-db.source.uri=jdbc:mysql://localhost:3306
-db.source.schema=cspro
-db.source.username=srcUsername
-db.source.password=srcPassword
-db.source.data.table=household_dict
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=survey/dictionary/household.dcf, survey/dictionary/listing.dcf
 
-# Destination microdata MySQL
-db.dest.uri=jdbc:mysql://localhost:3306
-db.dest.schema=cspro_microdata
-db.dest.username=dstUsername
-db.dest.password=dstPassword
-db.dest.table.prefix=h
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h,l
+
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
+
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=csweb
+db.source.username=root
+db.source.password=root
+
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=dashboard
+db.dest.username=root
+db.dest.password=root
 ```
 
 Execution steps:
+
+First of all generate a new cspro2sql project 
+
+```
+> cspro2sql -e generate -s pilot -hh household -l listing
+```
+
+The output of the command will be:
+
+```
+Starting generation of project pilot
+Created folder pilot
+Created folder pilot/dictionary
+Created folder pilot/territory
+Created file pilot/pilot.properties
+Created file pilot/README.txt
+Created file pilot/dictionary/Household_template.dcf
+Created file pilot/dictionary/Listing_template.dcf
+Created file pilot/dictionary/README.txt
+Created file pilot/territory/territory_template.csv
+Created file pilot/territory/README.txt
+Project pilot successfully created.
+Now you are ready to start processing your data!
+
+Please open the file pilot/README.txt
+```
+
+
 ```
 > CsPro2Sql -e schema -p Household.properties –o microdata.sql
 > mysql -u dstUsername -p < microdata.sql
