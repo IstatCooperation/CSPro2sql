@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="CsPro2Sql" default="default" basedir=".">
+<project name="cspro2sql" default="default" basedir=".">
     
     <description>Builds, tests, and runs the project cspro2sql</description>
     
@@ -30,7 +30,7 @@
     <target name="-post-jar">
         <echo message="Creating cspro2sql.zip"/>
         <zip destfile="cspro2sql.zip">
-            <zipfileset dir="dist" includes="cspro2sql" prefix="cspro2sql/lib" />
+            <zipfileset dir="dist" includes="cspro2sql.jar" prefix="cspro2sql/lib" />
             <zipfileset dir="lib" prefix="cspro2sql/lib" />
             <zipfileset dir="." includes="cspro2sql.sh" prefix="cspro2sql" />
             <zipfileset dir="." includes="cspro2sql.bat" prefix="cspro2sql" />
