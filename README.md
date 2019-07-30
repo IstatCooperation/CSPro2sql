@@ -1,4 +1,4 @@
-# CSPro2Sql
+# CSPro2Sql ![New release](https://img.shields.io/badge/new-release%201.0-brightgreen?style=flat-square)
 
 CsPro2Sql is a Java application to migrate questionnaires from [CsPro 7.0](http://www.csprousers.org/beta/) to a MySQL database.
 
@@ -24,20 +24,31 @@ CsPro2Sql is simple to install: all you need is to download and unzip the `CsPro
 
 CsPro2Sql is composed of several engines (run `CsPro2Sql` to get usage info):
 ```
-CsPro2Sql -e schema  -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]
-CsPro2Sql -e loader  -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]
-CsPro2Sql -e monitor -p PROPERTIES_FILE [-o OUTPUT_FILE]
-CsPro2Sql -e update  -p PROPERTIES_FILE
-CsPro2Sql -e status  -p PROPERTIES_FILE
+CsPro2Sql -e generate   -p SURVEY_NAME [-hh HOUSEHOLD_QUEST] [-l LISTING_QUEST] [-ea EA_QUEST]
+CsPro2Sql -e scan       -p PROPERTIES_FILE
+CsPro2Sql -e schema     -p PROPERTIES_FILE [-fk] [-o OUTPUT_FILE]
+CsPro2Sql -e loader     -p PROPERTIES_FILE [-a] [-cc] [-co] [-f|-r] [-o OUTPUT_FILE]
+CsPro2Sql -e monitor    -p PROPERTIES_FILE [-o OUTPUT_FILE]
+CsPro2Sql -e update     -p PROPERTIES_FILE
+CsPro2Sql -e status     -p PROPERTIES_FILE
+CsPro2Sql -e territory  -p PROPERTIES_FILE
+CsPro2Sql -e LU         -p PROPERTIES_FILE
+CsPro2Sql -e connection -p PROPERTIES_FILE
 ```
 
 Engines description:
 
+* `generate`:  generates a cspro2sql project (files and folders needed to execute cspro2sql engines)
+* `scan`:  check input data, metadata, territory structure and database connections
 * `schema`:  to create the microdata MySQL script
 * `loader`:  to transfer data from the CsPro 7.0 database to the microdata MySQL database
 * `monitor`: to create the dashboard MySQL script
 * `update`:  to update the dashboard report data
 * `status`:  to check the loader engine status
+* `territory`:  generates the territory table and uploads data from territory.csv file
+* `LU`:  load & update (invoked the loader & update engines)
+* `connection`:  tests source/destination database connection
+
 
 Parameters:
 ```
@@ -45,9 +56,12 @@ Parameters:
  -cc,--check-constraints   perform constraints check
  -co,--check-only          perform only constraints check (no data transfer)
  -e,--engine <arg>         select engine: [loader|schema|monitor|update|status]
+ -ea,--enum area <arg>     name of enumeration area dictionary file
  -f,--force                skip check of loader multiple running instances
  -fk,--foreign-keys        create foreign keys to value sets
  -h,--help                 display this help
+ -hh,--household <arg>     name of household dictionary file (dafault value is 'household')
+ -l,--listing <arg>        name of listing dictionary file
  -o,--output <arg>         name of the output file
  -p,--properties <arg>     properties file
  -r,--recovery             recover a broken session of the loader
@@ -58,20 +72,30 @@ Parameters:
 
 In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
 
-* `db.source.uri`: CsPro 7.0 database connection string
-* `db.source.schema`: CsPro 7.0 database schema
-* `db.source.username`: CsPro 7.0 database username
-* `db.source.password`: CsPro 7.0 database password
-* `db.source.data.table`: CsPro 7.0 table containing questionnaires plain data
-* `db.dest.uri`: microdata MySQL connection string
-* `db.dest.schema`: microdata MySQL schema
-* `db.dest.username`: microdata MySQL username
-* `db.dest.password`: microdata MySQL password
-* `db.dest.table.prefix`: microdata MySQL table prefix
+```
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=test/dictionary/household.dcf
 
-Within this configuration CsPro2Sql reads the CsPro-Dictionary from CsPro 7.0 database. It is also possible to specify a CsPro-Dictionary file:
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h
 
-* `dictionary.filename`: the path to the CsPro-Dictionary file
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
+
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=bdcivcensus2019
+db.source.username=root
+db.source.password=root
+
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=test2
+db.dest.username=root
+db.dest.password=root
+```
 
 Optional properties are:
 
@@ -80,35 +104,208 @@ Optional properties are:
 
 *Note: the source CsPro 7.0 database and the microdata MySQL could be the same*
 
-## Example
-
-Example of properties file (eg. `Household.properties`):
+Example of properties file (eg. `household.properties`):
 ```
-# Source CsPro database
-db.source.uri=jdbc:mysql://localhost:3306
-db.source.schema=cspro
-db.source.username=srcUsername
-db.source.password=srcPassword
-db.source.data.table=household_dict
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=survey/dictionary/household.dcf, survey/dictionary/listing.dcf
 
-# Destination microdata MySQL
-db.dest.uri=jdbc:mysql://localhost:3306
-db.dest.schema=cspro_microdata
-db.dest.username=dstUsername
-db.dest.password=dstPassword
-db.dest.table.prefix=h
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h,l
+
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
+
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=csweb
+db.source.username=root
+db.source.password=root
+
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=dashboard
+db.dest.username=root
+db.dest.password=root
 ```
 
-Execution steps:
+## Execution steps
+
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine generate**
+
+Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
+
 ```
-> CsPro2Sql -e schema -p Household.properties –o microdata.sql
+> cspro2sql -e generate -s pilot -hh household -l listing
+```
+
+Cspro2sql will generate a set of files and folders to support the configuration activities. 
+The output of the command will be:
+
+```
+Starting generation of project pilot
+Created folder pilot
+Created folder pilot/dictionary
+Created folder pilot/territory
+Created file pilot/pilot.properties
+Created file pilot/README.txt
+Created file pilot/dictionary/household_template.dcf
+Created file pilot/dictionary/listing_template.dcf
+Created file pilot/dictionary/README.txt
+Created file pilot/territory/territory_template.csv
+Created file pilot/territory/README.txt
+Project pilot successfully created.
+Now you are ready to start processing your data!
+
+Please open the file pilot/README.txt
+```
+
+The `README.txt` file in the root folder of the project, provides a step by step guide. 
+
+The files `Household_template.dcf` and `Listing_template.dcf`, in the `dictionary` folder, provide examples on cspro2sql metadata (a detailed description in provided in section Metadata).
+
+The file `territory_template.dcf`, in the `territory` folder, provides examples on the territory data (a detailed description in provided in section Territory).
+
+
+![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine scan**
+
+At the end of the `[PRELIMINARY STEPS]` described in the `README.txt`, execute the scan engine:
+
+```
+> cspro2sql -e scan -p test/test.properties
+```
+If you have set everything according to the step-by-step guide, you should get the following output:
+
+```
+Starting property file scan...
+[Dictionaries]
+- File pilot/dictionary/household.dcf: OK
+[Metadata]
+Tag #household: OK (DENOMBREMENT_DICT)
+Tag #listing: MISSING
+Tag #expected: MISSING
+Tag #individual: OK (DENOMBREMENT_DICT)
+Tag #age: OK (DENOMBREMENT_DICT)
+Tag #sex: OK (DENOMBREMENT_DICT)
+Tag #religion: MISSING
+Tag #territory: OK (DENOMBREMENT_DICT)
+Territory structure variable[label]
+ID101[REGION] -> ID102[PROVINCE] -> ID103[COMMUNE] -> ID104[EA]
+[Territory]
+- File pilot/territory/territory.csv: OK
+REGION -> REGION_NAME -> PROVINCE -> PROVINCE_NAME -> COMMUNE -> COMMUNE_NAME -> EA -> EA_NAME
+Territory file matches metadata. It is possible to generate the territory table!
+[Database]
+Connecting to jdbc:mysql://localhost:3307/csweb
+Connection successful!
+Connecting to jdbc:mysql://localhost:3307/dashboard
+Connection successful!
+...scanning completed!
+```
+
+**Engine schema & loader**
+
+Now you are ready to generate the microdata database and store CSPro data.
+
+```
+> cspro2sql -e schema -p Household.properties –o microdata.sql
 > mysql -u dstUsername -p < microdata.sql
-> CsPro2Sql -e loader -p Household.properties –cc
+> cspro2sql -e loader -p Household.properties –cc
 ```
+
+**Engine territory**
+
+Generate and populate the territory table.
+
+```
+> cspro2sql -e territory -p test/test.properties
+```
+
+**Engine monitor & update**
+
+Generate report tables and calculate reports.
+
+```
+> cspro2sql -e monitor -p test/test.properties -o test/dashboard_report.sql
+> mysql -u dstUsername -p < test/dashboard_report.sql
+> cspro2sql -e update -p test/test.properties
+```
+
 
 To monitor the loader activity run:
 ```
 > CsPro2Sql -e status -p Household.properties
+```
+
+## Metadata
+
+In order to generate dashboard reports it is necessary to add metadata to CSPro dictionaries. Metadata are classified in:
+
+* `dictionary`:  these metadata are used to mark dictionaries (household, listing, ea) and to mark `individual` record
+* `variable`:  these metadata are used to mark variables (i.e. sex, age, latitude, longitude, etc.)
+* `territory`:  these metadata are used to mark the territory structure
+
+The list of metadata is provided below:
+
+**Dictionary metadata**
+
+* `household`:  use this tag to mark the household dictionary [MANDATORY]
+* `individual`:  use this tag to mark the individual table [MANDATORY]
+* `listing`:  use this tag to mark the listing dictionary 
+* `expected`:  use this tag to mark the EA code dictionary
+
+
+**Variable metadata**
+
+* `age`:  use this tag to mark the age variable. It is also necessary to specify the range of variable [MANDATORY]
+* `sex`:  use this tag to mark the sex variable. It is also necessary to mark in the valueset the Male/Female values [MANDATORY]
+* `religion`:  use this tag to mark the religion variable
+* `expectedQuestionnaires`:  use this tag to mark the expected households from cartograhpy
+* `lat`:  use this tag to mark the latitude of the household
+* `lon`:  use this tag to mark the longitude of the household
+
+**Territory metadata**
+
+The territory metadata allow to specify the territorial hierarchy. Suppose that your hierarchy is the following:
+
+Region -> Province -> Commune -> EA
+
+Further let us suppose that in your Household dictionary the variables related to your territory structure are:
+
+```
+ID101 -> Region
+ID102 -> Province
+ID103 -> Commune
+ID104 -> EA
+```
+In order to bind variables and territorial hiedarchy it is necessary to add the following notes (check the Household_template.dcf file):
+
+```
+[Item]
+Label=101 Region
+Name=ID101
+Note=#territory[Region]
+
+[Item]
+Label=102 Province
+Name=ID102
+Note=#territory[Province, ID101]
+
+[Item]
+Label=103 Commune
+Name=ID103
+Note=#territory[Commune, ID102]
+
+[Item]
+Label=104 EA
+Name=ID104
+Note=#territory[EA, ID103]
+```
+
+The territory.csv file should have the following columns:
+```
+Region; Region_NAME; Province; Province_NAME; Commune; Commune_NAME; EA; EA_NAME
 ```
 
 ## Warnings
@@ -116,8 +313,11 @@ To monitor the loader activity run:
 * The CsPro tag `[Relation]` is ignored
 * A `ValueSet` with more than 1000 elements is ignored (the threshold will be parameterized in future realesed)
 
+
 ## Acknowledgement
-The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/) 
+The team responsible of [Census and Survey Processing System (CSPro)](https://www.census.gov/population/international/software/cspro/).
+
+The first release of cspro2sql has been developed in the framework of the Capacity building project in Ethiopia (fourth Population and Housing Census), funded by AICS
 
 ## License
 CSPro2Sql is EUPL-licensed

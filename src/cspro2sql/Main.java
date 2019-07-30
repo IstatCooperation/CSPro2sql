@@ -42,7 +42,7 @@ import org.apache.commons.cli.ParseException;
  */
 public class Main {
 
-    private static final String VERSION = "0.9.5";
+    private static final String VERSION = "1.0";
     private static final Logger LOGGER = Logger.getLogger(LoaderEngine.class.getName());
 
     public static void main(String[] args) {
@@ -141,7 +141,7 @@ public class Main {
         options.addOption("s", "survey", true, "name of the survey to be analyzed");
         options.addOption("hh", "household", true, "name of household dictionary file");
         options.addOption("l", "listing", true, "name of listing dictionary file");
-        options.addOption("ea", "enumeration area", true, "name of enumenration area dictionary file");
+        options.addOption("ea", "enumeration area", true, "name of enumeration area dictionary file");
 
         boolean loadProperties = true;
 

@@ -7,6 +7,7 @@ import cspro2sql.bean.Questionnaire;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.QuestionnaireReader;
 import cspro2sql.sql.DictionaryQuery;
+import cspro2sql.utils.Utility;
 import cspro2sql.writer.DeleteWriter;
 import cspro2sql.writer.InsertWriter;
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class LoaderEngine {
                 ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                     connSrc.setReadOnly(true);
-
+                    Long start, stop, chunkStart, chunkStop;
                     //Connect to the destination database
                     if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
@@ -98,10 +99,12 @@ public class LoaderEngine {
 
                         DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
 
+                        start = System.currentTimeMillis();
+                        
                         //Store meta data
                         dictionaryQuery.insertUnits(dictionary);
                         dictionaryQuery.insertVariables(dictionary);
-                        
+
                         DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo(srcDataTable);
                         int lastRevision = dictionaryInfo.getRevision();
 
@@ -156,6 +159,7 @@ public class LoaderEngine {
                             stmtDst.executeQuery("SET foreign_key_checks=0");
 
                             int chunkCounter = 0;
+                            chunkStart = start;
                             boolean chunkError = false;
                             List<Questionnaire> quests = new LinkedList<>();
                             while (result.next()) {
@@ -192,7 +196,12 @@ public class LoaderEngine {
                                             System.out.print('+');
                                         }
                                         if (chunkCounter % 20 == 0) {
-                                            System.out.println(" Load: " + dictionaryInfo.getLoaded() + " Err: " + dictionaryInfo.getErrors() + " Tot: " + dictionaryInfo.getTotal());
+                                            chunkStop = System.currentTimeMillis();
+                                            System.out.println(" Load: " + dictionaryInfo.getLoaded() 
+                                                    + " Err: " + dictionaryInfo.getErrors() 
+                                                    + " Tot: " + dictionaryInfo.getTotal() 
+                                                    + " Time: " + Utility.convertMillis(chunkStop - chunkStart));
+                                            chunkStart = chunkStop;
                                         }
                                     }
                                     quests.clear();
@@ -212,12 +221,14 @@ public class LoaderEngine {
                             stmtDst.executeQuery("SET unique_checks=1");
                         }
 
+                        stop = System.currentTimeMillis();
+                        
                         if (errors) {
                             System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
                         } else {
                             System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed!");
                         }
-                        dictionaryInfo.printShort(System.out);
+                        dictionaryInfo.printShort(System.out, stop - start);
 
                         if (!dictionaryQuery.stop(dictionaryInfo)) {
                             System.out.println("Impossible to set LOADER status to stop!");

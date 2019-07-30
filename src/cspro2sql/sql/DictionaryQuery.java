@@ -46,7 +46,7 @@ public class DictionaryQuery {
     private static final String DICTIONARY_SELECT_MAX_UNIT = "SELECT COALESCE(MAX(ID), 0) as MAX_VAL FROM DASHBOARD_META_UNIT";
     private static final String DICTIONARY_SELECT_MAX_VARIABLE = "SELECT COALESCE(MAX(ID), 0) as MAX_VAL FROM DASHBOARD_META_VARIABLE";
     private static final String DICTIONARY_SELECT_UNIT_BY_NAME = "SELECT ID FROM DASHBOARD_META_UNIT WHERE NAME = ?";
-    private static final String DICTIONARY_INSERT_UNIT = "insert into DASHBOARD_META_UNIT (`ID`, `NAME`, `NOTE`, `PARENT_ID`, `CONCEPT_ID`) values (?,?,?,?,?)";
+    private static final String DICTIONARY_INSERT_UNIT = "insert into DASHBOARD_META_UNIT (`ID`, `NAME`, `TABLE_NAME`, `NOTE`, `PARENT_ID`, `CONCEPT_ID`) values (?,?,?,?,?,?)";
     private static final String DICTIONARY_INSERT_VARIABLE = "insert into DASHBOARD_META_VARIABLE (`ID`, `NAME`, `NOTE`, `TYPE`, `VAR_ORDER`, `UNIT_ID`, `CONCEPT_ID`) values (?,?,?,?,?,?,?)";
     private static final String DICTIONARY_TRUNCATE_UNIT = "truncate table DASHBOARD_META_UNIT";
     private static final String DICTIONARY_TRUNCATE_VARIABLE = "truncate table DASHBOARD_META_VARIABLE";
@@ -223,34 +223,36 @@ public class DictionaryQuery {
         int recordId;
         int mainRecordId = -1;
         Integer conceptId;
-        if (truncateUnit()) {
-            try (ResultSet result = selectMaxUnit.executeQuery()) {
-                result.next();
-                recordId = result.getInt("MAX_VAL") + 1;
+        try (ResultSet result = selectMaxUnit.executeQuery()) {
+            result.next();
+            recordId = result.getInt("MAX_VAL");
+            if (recordId == 0) {//TABLE IS EMPTY
+                recordId = recordId + 1;
                 for (Record record : dictionary.getRecords()) {
                     insertUnit.setInt(1, recordId);
                     insertUnit.setString(2, record.getName());
-                    insertUnit.setString(3, "");
+                    insertUnit.setString(3, record.getTableName());
+                    insertUnit.setString(4, "");
                     if (record.isMainRecord()) {
                         mainRecordId = recordId;
-                        insertUnit.setNull(4, java.sql.Types.INTEGER);
+                        insertUnit.setNull(5, java.sql.Types.INTEGER);
                         conceptId = Concepts.getId(dictionary);
                     } else {
                         conceptId = Concepts.getId(record);
-                        insertUnit.setInt(4, mainRecordId);
+                        insertUnit.setInt(5, mainRecordId);
                     }
                     if (conceptId != null) {
-                        insertUnit.setInt(5, conceptId);
+                        insertUnit.setInt(6, conceptId);
                     } else {
-                        insertUnit.setNull(5, java.sql.Types.INTEGER);
+                        insertUnit.setNull(6, java.sql.Types.INTEGER);
                     }
                     insertUnit.executeUpdate();
                     recordId++;
                 }
                 insertUnit.getConnection().commit();
-            } catch (SQLException ex) {
-                return false;
             }
+        } catch (SQLException ex) {
+            return false;
         }
         return true;
     }
@@ -260,10 +262,12 @@ public class DictionaryQuery {
         Integer order = 1;
         Integer unitId;
         Integer conceptId;
-        if (truncateVariable()) {
-            try (ResultSet result = selectMaxVariable.executeQuery()) {
-                result.next();
-                recordId = result.getInt("MAX_VAL") + 1;
+
+        try (ResultSet result = selectMaxVariable.executeQuery()) {
+            result.next();
+            recordId = result.getInt("MAX_VAL");
+            if (recordId == 0) {//TABLE IS EMPTY
+                recordId = recordId + 1;
                 for (Record record : dictionary.getRecords()) {
                     for (Item item : record.getItems()) {
                         insertVariable.setInt(1, recordId);
@@ -295,9 +299,10 @@ public class DictionaryQuery {
                     insertVariable.getConnection().commit();
                 }
                 insertVariable.getConnection().commit();
-            } catch (SQLException ex) {
-                return false;
             }
+
+        } catch (SQLException ex) {
+            return false;
         }
         return true;
     }
