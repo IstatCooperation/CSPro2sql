@@ -1,5 +1,6 @@
 package cspro2sql.writer;
 
+import cspro2sql.bean.Concepts;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Record;
@@ -8,8 +9,12 @@ import cspro2sql.bean.ValueSetValue;
 import cspro2sql.sql.TemplateManager;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Copyright 2017 ISTAT
@@ -33,52 +38,64 @@ import java.util.Set;
  */
 public class SchemaWriter {
 
+    private static final Map<String, Integer> unitMap = new HashMap<>();
+    private static int unitId = 0;
+    private static int variableId = 0;
+
     public static void write(Dictionary dictionary, boolean foreignKeys, PrintStream ps) {
-        TemplateManager tm = new TemplateManager(dictionary);
-        String schema = dictionary.getSchema();
-
-        ps.println("CREATE SCHEMA IF NOT EXISTS " + schema + " CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-        ps.println();
-        ps.println("USE " + schema + ";");
-        ps.println();
-
         try {
-            tm.printTemplate("cspro2sql_dictionary", ps);
-            tm.printTemplate("cspro2sql_error", ps);
-            tm.printTemplate("dashboard_user", ps);
-            tm.printTemplate("dashboard_report_type", ps);
-            tm.printTemplate("dashboard_report", ps);
-            tm.printTemplate("dashboard_meta_concept", ps);
-            tm.printTemplate("dashboard_meta_unit", ps);
-            tm.printTemplate("dashboard_meta_variable", ps);
 
-        } catch (IOException ex) {
-            return;
-        }
+            TemplateManager tm = new TemplateManager(dictionary);
+            String schema = dictionary.getSchema();
 
-        for (Record record : dictionary.getRecords()) {
-            for (Item item : record.getItems()) {
-                printValueSet(schema, item, ps);
+            if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+                ps.println("CREATE SCHEMA IF NOT EXISTS " + schema + " CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                ps.println();
+                ps.println("USE " + schema + ";");
+                ps.println();
+                tm.printTemplate("cspro2sql_dictionary", ps);
+                tm.printTemplate("cspro2sql_error", ps);
+                tm.printTemplate("dashboard_user", ps);
+                tm.printTemplate("dashboard_status", ps);
+                tm.printTemplate("dashboard_report_type", ps);
+                tm.printTemplate("dashboard_report", ps);
+                tm.printTemplate("dashboard_meta_concept", ps);
+                tm.printTemplate("dashboard_meta_unit", ps);
+                tm.printTemplate("dashboard_meta_variable", ps);
             }
-        }
 
-        for (Record record : dictionary.getRecords()) {
-            ps.println("CREATE TABLE " + record.getFullTableName() + " (");
-            ps.println("    ID INT(9) UNSIGNED AUTO_INCREMENT,");
-            if (!record.isMainRecord()) {
-                ps.println("    " + record.getMainRecord().getName() + " INT(9) UNSIGNED NOT NULL,");
-                ps.println("    COUNTER INT(9) UNSIGNED NOT NULL,");
-            }
-            for (Item item : record.getItems()) {
-                printItem(schema, foreignKeys, item, ps);
-            }
-            if (!record.isMainRecord()) {
-                ps.println("    INDEX (" + record.getMainRecord().getName() + "),");
-                ps.println("    FOREIGN KEY (" + record.getMainRecord().getName() + ") REFERENCES " + record.getMainRecord().getFullTableName() + "(id),");
-            }
-            ps.println("    PRIMARY KEY (ID)");
-            ps.println(") ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            ps.println("INSERT INTO " + schema + ".CSPRO2SQL_DICTIONARY (NAME) values ('" + dictionary.getName() + "');");
             ps.println();
+
+            printUnits(dictionary, ps);
+            printVariables(dictionary, ps);
+
+            for (Record record : dictionary.getRecords()) {
+                for (Item item : record.getItems()) {
+                    printValueSet(schema, item, ps);
+                }
+            }
+
+            for (Record record : dictionary.getRecords()) {
+                ps.println("CREATE TABLE " + record.getFullTableName() + " (");
+                ps.println("    ID INT(9) UNSIGNED AUTO_INCREMENT,");
+                if (!record.isMainRecord()) {
+                    ps.println("    " + record.getMainRecord().getName() + " INT(9) UNSIGNED NOT NULL,");
+                    ps.println("    COUNTER INT(9) UNSIGNED NOT NULL,");
+                }
+                for (Item item : record.getItems()) {
+                    printItem(schema, foreignKeys, item, ps);
+                }
+                if (!record.isMainRecord()) {
+                    ps.println("    INDEX (" + record.getMainRecord().getName() + "),");
+                    ps.println("    FOREIGN KEY (" + record.getMainRecord().getName() + ") REFERENCES " + record.getMainRecord().getFullTableName() + "(id),");
+                }
+                ps.println("    PRIMARY KEY (ID)");
+                ps.println(") ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+                ps.println();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(SchemaWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -86,16 +103,20 @@ public class SchemaWriter {
         TemplateManager tm = new TemplateManager(dictionary);
         String schema = dictionary.getSchema();
 
-        ps.println("CREATE DATABASE " + schema + ";");
-        ps.println();
-        ps.println();
+        if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+            ps.println("CREATE DATABASE " + schema + ";");
+            ps.println();
+            ps.println();
 
-        try {
-            tm.printTemplate("sqlserver/cspro2sql_dictionary", ps);
-            tm.printTemplate("sqlserver/cspro2sql_error", ps);
-        } catch (IOException ex) {
-            return;
+            try {
+                tm.printTemplate("sqlserver/cspro2sql_dictionary", ps);
+                tm.printTemplate("sqlserver/cspro2sql_error", ps);
+            } catch (IOException ex) {
+                return;
+            }
         }
+
+        ps.println("INSERT INTO dbo.CSPRO2SQL_DICTIONARY (NAME) values ('" + dictionary.getName() + "');");
 
         for (Record record : dictionary.getRecords()) {
             for (Item item : record.getItems()) {
@@ -261,4 +282,82 @@ public class SchemaWriter {
             printValueSetSqlserver(schema, subItem, ps);
         }
     }
+
+    private static void printUnits(Dictionary dictionary, PrintStream ps) {
+
+        Integer mainRecordId = null;
+        Integer conceptId;
+
+        for (Record record : dictionary.getRecords()) {
+
+            if (record.isMainRecord()) {
+                mainRecordId = unitId;
+                conceptId = Concepts.getId(dictionary);
+            } else {
+                conceptId = Concepts.getId(record);
+            }
+
+            ps.print("INSERT INTO " + dictionary.getSchema() + ".DASHBOARD_META_UNIT (`ID`, `NAME`, `TABLE_NAME`, `PARENT_ID`, `CONCEPT_ID`) "
+                    + "values (" + unitId + ", \'" + record.getName() + "\', \'" + record.getTableName() + "\', " + printmainRecordId(mainRecordId, record) + ", " + printId(conceptId) + ");");
+            ps.println();
+
+            unitMap.put(record.getName(), unitId);
+            unitId++;
+        }
+        ps.println();
+
+    }
+
+    private static void printVariables(Dictionary dictionary, PrintStream ps) {
+
+        int order = 0;
+        Integer unitId = null;
+        Integer conceptId = null;
+
+        for (Record record : dictionary.getRecords()) {
+            for (Item item : record.getItems()) {
+                conceptId = Concepts.getId(item);
+                if (item.hasTag(Dictionary.TAG_TERRITORY)) {
+                    order++;
+                }
+                if (unitMap.containsKey(item.getRecord().getName())) {
+                    unitId = unitMap.get(item.getRecord().getName());
+                }
+
+                ps.print("INSERT INTO " + dictionary.getSchema() + ".DASHBOARD_META_VARIABLE (`ID`, `NAME`, `TYPE`, `VAR_ORDER`, `UNIT_ID`, `CONCEPT_ID`) "
+                        + "values (" + variableId + ", \'" + item.getName() + "\', \'" + item.getDataType() + "\', " + printOrder(order, item) + ", " + printId(unitId) + ", " + printId(conceptId) + ");");
+                ps.println();
+                variableId++;
+            }
+        }
+        ps.println();
+
+    }
+
+    private static String printId(Integer recordId) {
+
+        if (recordId == null) {
+            return "null";
+        } else {
+            return "" + recordId;
+        }
+
+    }
+
+    private static String printOrder(int order, Item item) {
+        if (item.hasTag(Dictionary.TAG_TERRITORY)) {
+            return "" + order;
+        } else {
+            return "0";
+        }
+    }
+
+    private static String printmainRecordId(Integer mainRecordId, Record record) {
+        if (record.isMainRecord()) {
+            return "null";
+        } else{
+            return "" + mainRecordId;
+        }
+    }
+
 }

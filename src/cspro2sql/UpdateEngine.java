@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Copyright 2017 ISTAT
@@ -94,12 +93,12 @@ public class UpdateEngine {
         Integer count;
         System.out.print("Updating dashboard_status... ");
         try (Statement countStmt = conn.createStatement()) {
-            try (ResultSet rs = countStmt.executeQuery("SELECT COUNT(*) FROM " + schema + ".dashboard_status")) {
+            try (ResultSet rs = countStmt.executeQuery("SELECT COUNT(*) FROM " + schema + ".DASHBOARD_STATUS")) {
                 while (rs.next()) {
                     count = rs.getInt(1);
                     if (count == 0) { //empty table
                         insertStmt = conn.createStatement();
-                        insertStmt.executeUpdate("INSERT INTO " + schema + ".dashboard_status values (" + DASHBOARD_STATUS_ID + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)");
+                        insertStmt.executeUpdate("INSERT INTO " + schema + ".DASHBOARD_STATUS values (" + DASHBOARD_STATUS_ID + ", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)");
                     } else {
                         insertStmt = conn.createStatement();
                         insertStmt.executeUpdate("UPDATE " + schema + ".dashboard_status set LAST_UPDATE = CURRENT_TIMESTAMP where id = " + DASHBOARD_STATUS_ID);

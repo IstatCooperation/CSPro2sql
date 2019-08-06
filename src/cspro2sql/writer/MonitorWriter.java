@@ -63,7 +63,6 @@ public class MonitorWriter {
 
         try {
             tm.printTemplate("dashboard_info", out);
-            tm.printTemplate("dashboard_status", out);
         } catch (IOException ex) {
             return false;
         }

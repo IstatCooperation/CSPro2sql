@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS @SCHEMA.`dashboard_report`;
-CREATE TABLE IF NOT EXISTS @SCHEMA.`dashboard_report` (
+CREATE TABLE IF NOT EXISTS @SCHEMA.DASHBOARD_REPORT (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `NAME` varchar(256),
   `DESCRIPTION` text,
@@ -12,7 +11,6 @@ CREATE TABLE IF NOT EXISTS @SCHEMA.`dashboard_report` (
   CONSTRAINT `fk_report_tyep_idx` FOREIGN KEY (`REPORT_TYPE`) REFERENCES `dashboard_report_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO @SCHEMA.`dashboard_report` (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) 
-    VALUES ("Territory", "Territorial hierarchy", "", 1, 1, 3);
-INSERT INTO @SCHEMA.`dashboard_report` (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) 
-    VALUES ("Maps", "GIS maps", "", 2, 1, 3);
+INSERT INTO @SCHEMA.DASHBOARD_REPORT (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) VALUES ("Territory", "Territorial hierarchy", "", 1, 1, 3);
+INSERT INTO @SCHEMA.DASHBOARD_REPORT (`NAME`, `DESCRIPTION`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) VALUES ("Maps", "GIS maps", "", 2, 1, 3);
+

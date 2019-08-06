@@ -282,7 +282,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.write("DecimalChar=Yes");
                     bw.newLine();
-                    bw.write("Note=#fieldwork");
+                    bw.write("Note=#household");
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Level]");
