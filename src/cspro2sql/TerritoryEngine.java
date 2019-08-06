@@ -7,6 +7,7 @@ import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.TerritoryReader;
+import cspro2sql.utils.Utility;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -74,6 +75,7 @@ public class TerritoryEngine {
     }
 
     public static boolean execute(Dictionary dictionary, Properties prop) {
+        Long start, stop;
         List<Territory> territoryList;
         try {
             territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), dictionary);
@@ -83,12 +85,15 @@ public class TerritoryEngine {
                 try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
                     connSrc.setAutoCommit(false);
                     try (Statement stmt = connSrc.createStatement()) {
+                        int rowCounter = 1;
+                        start = System.currentTimeMillis();
                         if (createTerritoryTable(dictionary, stmt, prop) && truncateTerritory(stmt, prop)) {
                             System.out.print("Loading territory table... ");
+                            System.out.println();
                             String insertQuery = "INSERT INTO " + prop.getProperty("db.dest.schema") + ".`territory` VALUES(";
                             String insertValues = "";
                             String territoryCode = "";
-                            int rowCounter = 1;
+
                             for (Territory territory : territoryList) {
                                 if (!isTerritoryStored(dictionary, territory, stmt, prop)) {
                                     int counter = 1;
@@ -113,7 +118,8 @@ public class TerritoryEngine {
                             }
                         }
                         connSrc.commit();
-                        System.out.print("[OK]");
+                        stop = System.currentTimeMillis();
+                        System.out.println(" Load: " + rowCounter + " Time: " + Utility.convertMillis(stop - start));
                     }
                 }
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {

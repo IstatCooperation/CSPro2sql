@@ -137,7 +137,7 @@ public class TerritoryReader {
 
     private static boolean checkColumnName(String colName, List<TerritoryItem> items) {
         for (TerritoryItem terrItem : items) {
-            if (terrItem.getName().equals(colName) || terrItem.getName().equals(colName.replace("_NAME", ""))) {
+            if (terrItem.getName().equals(colName) || terrItem.getName().equals(colName.replace("_NAME", "")) || terrItem.getItemName().equals(colName) || terrItem.getItemName().equals(colName.replace("_NAME", ""))) {
                 return true;
             }
         }

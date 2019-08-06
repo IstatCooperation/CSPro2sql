@@ -61,8 +61,8 @@ public class MonitorEngine {
             } else if (dictionary.hasTag(Dictionary.TAG_EXPECTED)) {
                 tmExpected = new TemplateManager(dictionary);
             }
-            System.out.print("[OK]");
         }
+        System.out.print("[OK]");
         return MonitorWriter.write(tmHousehold, tmListing, tmExpected, out);
     }
 
