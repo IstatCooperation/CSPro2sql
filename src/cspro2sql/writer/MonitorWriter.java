@@ -197,13 +197,15 @@ public class MonitorWriter {
             out.println("        " + item.getColunmFullName() + " AS " + mainTerritoryItem.getItemName() + ",");
             records.add(item.getRecord());
         }
-        Record[] recArray = records.toArray(new Record[0]);
+        
         Item expected = tm.getDictionary().getTaggedItem(Dictionary.TAG_EXPECTED_QUESTIONNAIRES);
         if (expected == null) {
             out.println("        COUNT(0) AS `" + columnName + "`");
         } else {
             out.println("        SUM(" + expected.getColunmFullName() + ") AS `" + columnName + "`");
+            records.add(expected.getRecord());
         }
+        Record[] recArray = records.toArray(new Record[0]);
         out.println("    FROM");
         out.println("        " + recArray[0].getMainRecord().getFullTableName());
         for (Record record : recArray) {
