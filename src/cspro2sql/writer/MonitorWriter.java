@@ -164,8 +164,10 @@ public class MonitorWriter {
             int upTo = 1;
             for (int i = 0; i < territory.size(); i++) {
                 TerritoryItem territoryItem = territory.get(i);
-                printExpectedReport(tm, "r_household_expected_by_" + territoryItem.getName().toLowerCase(), upTo++, out);
-                printMaterialized(schema, "r_household_expected_by_" + territoryItem.getName().toLowerCase(), out);
+                printExpectedReport(tm, "r_household_expected_by_" + territoryItem.getName().toLowerCase(), upTo, out);
+                printProgressReport(tm, "r_household_expected_by_" + territoryItem.getName().toLowerCase(), upTo, out);
+                printMaterialized(schema, "r_household_expected_by_" + territoryItem.getName().toLowerCase(), upTo, out);
+                upTo++;
             }
 
             printTotalReport(tm, (tmListing != null) ? tmListing : tm, out);
@@ -179,10 +181,22 @@ public class MonitorWriter {
         out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
         out.println("SELECT 0 INTO @ID;");
         out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
-        
+        out.println();
         out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) "
                 + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", 1, " + Report.getReportType(name) + ");");
+        out.println();
     }
+    
+    private static void printMaterialized(String schema, String name, int upTo, PrintStream out) {
+        out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
+        out.println("SELECT 0 INTO @ID;");
+        out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
+        out.println();
+        out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `TERRITORY_LEVEL`, `IS_VISIBLE`, `REPORT_TYPE`) "
+                + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", " + upTo + ", 1, " + Report.getReportType(name) + ");");
+        out.println();
+    }
+    
 
     private static void printAuxTable(TemplateManager mainTm, TemplateManager tm, String auxName, String columnName, PrintStream out) {
         Set<Record> records = new LinkedHashSet<>();
@@ -346,6 +360,26 @@ public class MonitorWriter {
         out.println("            FROM");
         printSubTable(tm, "aux_household_expected", "expected", 1000, out);
         out.println("                `a`) AS `household_expected`;");
+    }
+
+    private static void printProgressReport(TemplateManager tm, String reportName, int upTo, PrintStream out) {
+        String schema = tm.getDictionary().getSchema();
+        Territory territory = tm.getTerritory();
+
+        out.println("DROP TABLE IF EXISTS " + schema + ".t" + reportName + ";");
+        out.println("CREATE TABLE " + schema + ".t" + reportName + " (");
+        for (int i = 0; i < upTo; i++) {
+            out.println("     `" + territory.get(i).getItemName() + "` decimal(2,0) DEFAULT NULL,");
+        }
+        out.println("     `field` decimal(64,0) DEFAULT NULL,");
+        out.println("     `freshlist`decimal(64,0) DEFAULT NULL,");
+        out.println("     `expected`decimal(64,0) DEFAULT NULL,");
+        out.println("     `field_freshlist` decimal(64,4) DEFAULT NULL,");
+        out.println("     `field_expected`decimal(64,4) DEFAULT NULL,");
+        out.println("     `freshlist_expected` decimal(64,4) DEFAULT NULL,");
+        out.println("     `updatetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;");
+        out.println();
     }
 
 }

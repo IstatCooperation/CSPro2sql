@@ -1,5 +1,6 @@
 package cspro2sql;
 
+import cspro2sql.bean.Concepts;
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Report;
 import cspro2sql.utils.Utility;
@@ -10,6 +11,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -52,6 +55,7 @@ public class UpdateEngine {
 
     static boolean execute(Properties prop) {
         String schema = prop.getProperty("db.dest.schema").trim();
+        int territoryLevel = -1;
         Long start, stop;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
@@ -71,15 +75,22 @@ public class UpdateEngine {
                                 writeDst.executeUpdate("DROP TABLE IF EXISTS " + schema + ".m" + template);
                                 writeDst.executeQuery("SELECT 0 INTO @ID");
                                 writeDst.executeUpdate("CREATE TABLE " + schema + ".m" + template + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + template + ".* FROM " + schema + "." + template);
-                                connDst.commit();
                                 stop = System.currentTimeMillis();
                                 System.out.print("done");
                                 System.out.println(" [" + Utility.convertMillis(stop - start) + "]");
+                                territoryLevel = getReportTerritoryLevel(connDst, schema, template);
+                                if (territoryLevel > 0) {
+                                    System.out.print("Updating t" + template + "... ");
+                                    updateProgressReport(connDst, schema, template, territoryLevel);
+                                    System.out.println("done");
+                                }
+                                connDst.commit();                              
                             }
                         }
                         updateDashboardStatus(connDst, schema);
                     }
                 }
+                connDst.close();
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             System.out.println("Database exception (" + ex.getMessage() + ")");
@@ -111,5 +122,57 @@ public class UpdateEngine {
         } catch (SQLException ex) {
             System.out.println("Database exception (" + ex.getMessage() + ")");
         }
+    }
+
+    private static void updateProgressReport(Connection connDst, String schema, String template, int territoryLevel) {
+        List<String> territoryFields = getTerritoryFields(connDst, schema, territoryLevel);
+        String query = "";
+        String fields = "";
+        for (String field : territoryFields) {
+            fields += "`" + field + "`,";
+        }
+        fields += "`field`, `freshlist`, `expected`, `field_freshlist`, `field_expected`, `freshlist_expected`";
+        query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ") SELECT " + fields + " FROM " + schema + ".m" + template + " WHERE `" + territoryFields.get(0) + "` IS NOT NULL";
+        try (Statement countStmt = connDst.createStatement()) {
+            countStmt.executeUpdate(query);
+        } catch (SQLException ex) {
+            System.out.println("Database exception (" + ex.getMessage() + ")");
+        }
+
+    }
+
+    private static List<String> getTerritoryFields(Connection connDst, String schema, int territoryLevel) {
+
+        List<String> territoryFields = new ArrayList();
+
+        String query = "SELECT var.NAME FROM " + schema + ".DASHBOARD_META_VARIABLE var JOIN " + schema + ".DASHBOARD_META_UNIT as unit on var.unit_id = unit.id "
+                + "where var.concept_id = " + Concepts.TERRITORY_ID + " and unit.concept_id = " + Concepts.HOUSEHOLD_ID + " and var.var_order <= " + territoryLevel;
+        if (territoryLevel > 0) {
+            try (Statement countStmt = connDst.createStatement()) {
+                try (ResultSet rs = countStmt.executeQuery(query)) {
+                    while (rs.next()) {
+                        territoryFields.add(rs.getString(1));
+                    }
+                }
+            } catch (SQLException ex) {
+                System.out.println("Database exception (" + ex.getMessage() + ")");
+            }
+        }
+        return territoryFields;
+    }
+
+    private static int getReportTerritoryLevel(Connection connDst, String schema, String template) {
+        int level = -1;
+        String query = "SELECT TERRITORY_LEVEL FROM " + schema + ".DASHBOARD_REPORT WHERE REPORT_VIEW = \'" + template + "\'";
+        try (Statement countStmt = connDst.createStatement()) {
+            try (ResultSet rs = countStmt.executeQuery(query)) {
+                if (rs.next()) {
+                    level = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            System.out.println("Database exception (" + ex.getMessage() + ")");
+        }
+        return level;
     }
 }
