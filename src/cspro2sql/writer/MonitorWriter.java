@@ -43,7 +43,8 @@ public class MonitorWriter {
     
     private static final String[] TIME_TEMPLATES = new String[]{
         "t_questionnaire_info",
-        "t_individual_info"
+        "t_individual_info",
+        "t_total"
     };
     
 
@@ -368,16 +369,18 @@ public class MonitorWriter {
 
         out.println("DROP TABLE IF EXISTS " + schema + ".t" + reportName + ";");
         out.println("CREATE TABLE " + schema + ".t" + reportName + " (");
+        out.println("     `id` int(11) NOT NULL AUTO_INCREMENT,");
         for (int i = 0; i < upTo; i++) {
-            out.println("     `" + territory.get(i).getItemName() + "` decimal(2,0) DEFAULT NULL,");
+            out.println("     `" + territory.get(i).getItemName() + "` int(11) DEFAULT NULL,");
         }
-        out.println("     `field` decimal(64,0) DEFAULT NULL,");
-        out.println("     `freshlist`decimal(64,0) DEFAULT NULL,");
-        out.println("     `expected`decimal(64,0) DEFAULT NULL,");
-        out.println("     `field_freshlist` decimal(64,4) DEFAULT NULL,");
-        out.println("     `field_expected`decimal(64,4) DEFAULT NULL,");
-        out.println("     `freshlist_expected` decimal(64,4) DEFAULT NULL,");
-        out.println("     `updatetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        out.println("     `field` decimal(24,0) DEFAULT NULL,");
+        out.println("     `freshlist`decimal(24,0) DEFAULT NULL,");
+        out.println("     `expected`decimal(24,0) DEFAULT NULL,");
+        out.println("     `field_freshlist` decimal(24,4) DEFAULT NULL,");
+        out.println("     `field_expected`decimal(24,4) DEFAULT NULL,");
+        out.println("     `freshlist_expected` decimal(24,4) DEFAULT NULL,");
+        out.println("     `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,");
+        out.println("      PRIMARY KEY (`id`)");
         out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;");
         out.println();
     }

@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -38,6 +39,9 @@ import java.util.Properties;
 public class UpdateEngine {
 
     private static final int DASHBOARD_STATUS_ID = 1;
+    private static final List<String> TOTAL_REPORTS = new ArrayList<>(
+            Arrays.asList("r_questionnaire_info", "r_individual_info", "r_total")
+    );
 
     public static void main(String[] args) throws Exception {
         Properties prop = new Properties();
@@ -78,13 +82,20 @@ public class UpdateEngine {
                                 stop = System.currentTimeMillis();
                                 System.out.print("done");
                                 System.out.println(" [" + Utility.convertMillis(stop - start) + "]");
+
+                                if (TOTAL_REPORTS.contains(template)) {
+                                    System.out.print("Storing t" + template + "... ");
+                                    updateTotalReport(connDst, schema, template);
+                                    System.out.println("done");
+                                }
+
                                 territoryLevel = getReportTerritoryLevel(connDst, schema, template);
                                 if (territoryLevel > 0) {
-                                    System.out.print("Updating t" + template + "... ");
+                                    System.out.print("Storing t" + template + "... ");
                                     updateProgressReport(connDst, schema, template, territoryLevel);
                                     System.out.println("done");
                                 }
-                                connDst.commit();                              
+                                connDst.commit();
                             }
                         }
                         updateDashboardStatus(connDst, schema);
@@ -132,7 +143,7 @@ public class UpdateEngine {
             fields += "`" + field + "`,";
         }
         fields += "`field`, `freshlist`, `expected`, `field_freshlist`, `field_expected`, `freshlist_expected`";
-        query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ") SELECT " + fields + " FROM " + schema + ".m" + template + " WHERE `" + territoryFields.get(0) + "` IS NOT NULL";
+        query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ", `UPDATE_TIME`) SELECT " + fields + ", CURRENT_TIMESTAMP FROM " + schema + ".m" + template + " WHERE `" + territoryFields.get(0) + "` IS NOT NULL";
         try (Statement countStmt = connDst.createStatement()) {
             countStmt.executeUpdate(query);
         } catch (SQLException ex) {
@@ -174,5 +185,34 @@ public class UpdateEngine {
             System.out.println("Database exception (" + ex.getMessage() + ")");
         }
         return level;
+    }
+
+    private static void updateTotalReport(Connection connDst, String schema, String template) {
+
+        String query;
+        String fields = null;
+
+        switch (template) {
+            case "r_questionnaire_info":
+                fields = "`TOTAL`, `AVG_INDIVIDUAL`, `AVG_INDIVIDUAL_MALE`, `AVG_INDIVIDUAL_FEMALE`";
+                break;
+            case "r_individual_info":
+                fields = "`TOTAL`, `AGE_AVG`, `AGE_MAX`, `TOTAL_MALE`, `AGE_AVG_MALE`, `AGE_MAX_MALE`, `TOTAL_FEMALE`, `AGE_AVG_FEMALE`, `AGE_MAX_FEMALE`";
+                break;
+            case "r_total":
+                fields = "`EA_FIELDWORK`, `EA_FRESHLIST`, `EA_EXPECTED`, `HOUSEHOLD_FIELDWORK`, `HOUSEHOLD_FRESHLIST`, `HOUSEHOLD_EXPECTED`";
+                break;
+        }
+
+        if (fields != null) {
+
+            query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ", `UPDATE_TIME`) SELECT " + fields + ", CURRENT_TIMESTAMP FROM " + schema + ".m" + template;
+
+            try (Statement countStmt = connDst.createStatement()) {
+                countStmt.executeUpdate(query);
+            } catch (SQLException ex) {
+                System.out.println("Database exception (" + ex.getMessage() + ")");
+            }
+        }
     }
 }
