@@ -43,6 +43,7 @@ import org.apache.commons.cli.ParseException;
 public class Main {
 
     private static final String VERSION = "1.0";
+    private static final int HELP_WIDTH = 100;
     private static final Logger LOGGER = Logger.getLogger(LoaderEngine.class.getName());
 
     public static void main(String[] args) {
@@ -248,10 +249,10 @@ public class Main {
                         break;
                 }
             } else {
-                opts.printHelp();
+                opts.printError("Engine option (-e) is mandatory! Please specify the engine to be executed.");
             }
         } catch (ParseException | FileNotFoundException | UnsupportedEncodingException e) {
-            opts.printHelp();
+            opts.printError("Error parsing the command line.");
         }
         //End parsing command line
 
@@ -316,6 +317,7 @@ public class Main {
 
         void printHelp() {
             HelpFormatter formatter = new HelpFormatter();
+            formatter.setWidth(HELP_WIDTH);
 
             //System.out.println("CsPro2Sql - version " + VERSION + "\n");
             formatter.printHelp("\n\n"
@@ -333,7 +335,7 @@ public class Main {
                     + "CsPro2Sql -v\n"
                     + "\n"
                     + "Engines descriptions:\n"
-                    + " - generate: generates files and folders for cspro2sql\n"
+                    + " - generate: generates a cspro2sql project\n"
                     + " - scan: check input data and metadata\n"
                     + " - schema: create the sql script for microdata\n"
                     + " - loader: load microdata into the sql database\n"
@@ -341,8 +343,8 @@ public class Main {
                     + " - linkage: create the sql script to setup the PES system\n"
                     + " - update: update the reports of the monitoring system\n"
                     + " - status: print the loader status\n"
-                    + " - connection: test source/destination database connection\n"
-                    + " - territory: generate the territory table\n"
+                    + " - connection: test source/destination database connections\n"
+                    + " - territory: generates the territory table\n"
                     + " - LU: load and update\n"
                     + "\n", options);
 
@@ -358,11 +360,11 @@ public class Main {
 
             if (errMessage != null) {
                 System.err.println("\n[ERROR] " + errMessage);
-                System.err.println("CsPro2Sql -h for usage \n");
+                System.err.println("\nPlease execute the following command:");
+                System.err.println("cspro2sql -h");
             }
 
             System.exit(0);
-
         }
     }
 
