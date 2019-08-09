@@ -71,7 +71,7 @@ Parameters:
 
 ![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine generate**
 
-Suppose that you are using CSPro to manage data collection process in your `pilot` survey and that you have two dictionaries household.dcf and listing.dcf. In order to setup a cspro2sql project to manage your `pilot` survey data, execute the following command:
+Suppose that you are using CSPro to manage data collection process in your `pilot` survey and that you have two dictionaries (household.dcf, listing.dcf). In order to setup a cspro2sql project to manage your `pilot` survey data, execute the following command:
 
 ```
 > cspro2sql -e generate -s pilot -hh household -l listing
