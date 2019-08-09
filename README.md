@@ -67,74 +67,11 @@ Parameters:
  -r,--recovery             recover a broken session of the loader
  -v,--version              print the version of the programm
 ```
-
-## Configuration
-
-In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
-
-```
-#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
-dictionary=test/dictionary/household.dcf
-
-#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
-dictionary.prefix=h
-
-#[Territory] File containing territory data (codes, values)
-territory=test/territory/territory.csv
-
-#[CSPro] Specify CSWEB database connection parameters
-db.source.server=localhost
-db.source.port=3307
-db.source.schema=bdcivcensus2019
-db.source.username=root
-db.source.password=root
-
-#[Dashboard] Specify Dashboard database connection parameters
-db.dest.server=localhost
-db.dest.port=3307
-db.dest.schema=test2
-db.dest.username=root
-db.dest.password=root
-```
-
-Optional properties are:
-
-* `multiple.response`: list of items to be considered as a multiple answer (comma separated)
-* `ignore.items`: list of items to be ignored (comma separated)
-
-*Note: the source CsPro 7.0 database and the microdata MySQL could be the same*
-
-Example of properties file (eg. `household.properties`):
-```
-#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
-dictionary=survey/dictionary/household.dcf, survey/dictionary/listing.dcf
-
-#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
-dictionary.prefix=h,l
-
-#[Territory] File containing territory data (codes, values)
-territory=test/territory/territory.csv
-
-#[CSPro] Specify CSWEB database connection parameters
-db.source.server=localhost
-db.source.port=3307
-db.source.schema=csweb
-db.source.username=root
-db.source.password=root
-
-#[Dashboard] Specify Dashboard database connection parameters
-db.dest.server=localhost
-db.dest.port=3307
-db.dest.schema=dashboard
-db.dest.username=root
-db.dest.password=root
-```
-
 ## Execution steps
 
 ![new engine](https://img.shields.io/badge/new-engine-brightgreen) **Engine generate**
 
-Suppose you want to store data collected in a pilot survey (the dictionaries are household and listing)
+Suppose that you are using CSPro to manage data collection process in your `pilot` survey and that you have two dictionaries (household.dcf, listing.dcf). In order to setup a cspro2sql project to manage your `pilot` survey data, execute the following command:
 
 ```
 > cspro2sql -e generate -s pilot -hh household -l listing
@@ -179,22 +116,31 @@ If you have set everything according to the step-by-step guide, you should get t
 
 ```
 Starting property file scan...
-[Dictionaries]
-- File pilot/dictionary/household.dcf: OK
-[Metadata]
-Tag #household: OK (DENOMBREMENT_DICT)
-Tag #listing: MISSING
-Tag #expected: MISSING
-Tag #individual: OK (DENOMBREMENT_DICT)
-Tag #age: OK (DENOMBREMENT_DICT)
-Tag #sex: OK (DENOMBREMENT_DICT)
-Tag #religion: MISSING
-Tag #territory: OK (DENOMBREMENT_DICT)
-Territory structure variable[label]
-ID101[REGION] -> ID102[PROVINCE] -> ID103[COMMUNE] -> ID104[EA]
-[Territory]
-- File pilot/territory/territory.csv: OK
-REGION -> REGION_NAME -> PROVINCE -> PROVINCE_NAME -> COMMUNE -> COMMUNE_NAME -> EA -> EA_NAME
+[DICTIONARIES]
+- File popstandashboard/dictionary/household.dcf  OK
+- File popstandashboard/dictionary/listing.dcf    OK
+- File popstandashboard/dictionary/carto.dcf      OK
+
+[METADATA]
+Tag #household               OK (HOUSEHOLD)
+Tag #listing                 OK (LISTING)
+Tag #expected                OK (CARTOGRAPHY)
+Tag #individual              OK (HOUSEHOLD)
+Tag #age                     OK (HOUSEHOLD)
+Tag #sex                     OK (HOUSEHOLD)
+Tag #religion                MISSING
+Tag #expectedQuestionnaires  OK (GEOCODES_DICT)
+Tag #lat                     OK (LISTING)
+Tag #lon                     OK (LISTING)
+Tag #territory               OK (HOUSEHOLD, LISTING, CARTOGRAPHY)
+
+[TERRITORY]
+- File popstandashboard/territory/territory.csv:  OK
+Parsing territory structure...
+#Dictionary
+PROVINCE[Province] -> DISTRICT[District] -> EA[EA]
+#Territory file
+Province -> Province_NAME -> District -> District_NAME -> EA -> EA_NAME
 Territory file matches metadata. It is possible to generate the territory table!
 [Database]
 Connecting to jdbc:mysql://localhost:3307/csweb
@@ -306,6 +252,68 @@ Note=#territory[EA, ID103]
 The territory.csv file should have the following columns:
 ```
 Region; Region_NAME; Province; Province_NAME; Commune; Commune_NAME; EA; EA_NAME
+```
+
+## Configuration
+
+In order to run CsPro2Sql engines it is necessary to configure a properties file. Such file must contain the following properties:
+
+```
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=test/dictionary/household.dcf
+
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h
+
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
+
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=bdcivcensus2019
+db.source.username=root
+db.source.password=root
+
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=test2
+db.dest.username=root
+db.dest.password=root
+```
+
+Optional properties are:
+
+* `multiple.response`: list of items to be considered as a multiple answer (comma separated)
+* `ignore.items`: list of items to be ignored (comma separated)
+
+*Note: the source CsPro 7.0 database and the microdata MySQL could be the same*
+
+Example of properties file (eg. `household.properties`):
+```
+#[CSPro] List of CSPro dictionaries (household, freshlist, EA)
+dictionary=survey/dictionary/household.dcf, survey/dictionary/listing.dcf
+
+#[Dashboard] Table prefixes in Dashboard database (household, freshlist, EA)
+dictionary.prefix=h,l
+
+#[Territory] File containing territory data (codes, values)
+territory=test/territory/territory.csv
+
+#[CSPro] Specify CSWEB database connection parameters
+db.source.server=localhost
+db.source.port=3307
+db.source.schema=csweb
+db.source.username=root
+db.source.password=root
+
+#[Dashboard] Specify Dashboard database connection parameters
+db.dest.server=localhost
+db.dest.port=3307
+db.dest.schema=dashboard
+db.dest.username=root
+db.dest.password=root
 ```
 
 ## Warnings
