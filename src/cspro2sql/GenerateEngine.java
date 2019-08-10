@@ -31,18 +31,23 @@ public class GenerateEngine {
 
     public static final String FOLDER_DICTIONARY = "dictionary";
     public static final String FOLDER_TERRITORY = "territory";
+    public static final String FOLDER_BATCH = "batch";
+    public static final String FOLDER_LOG = "log";
     public static final String FILE_README = "README.txt";
-    public static final String FILE_README_DICTIONARY = "DICTIONARY_README.txt";
-    public static final String FILE_README_TERRITORY = "TERRITORY_README.txt";
+    public static final String FILE_README_DICTIONARY = "README_DICTIONARY.txt";
+    public static final String FILE_README_TERRITORY = "README_TERRITORY.txt";
+    public static final String FILE_README_BATCH = "README_BATCH.txt";
     public static final String FILE_TERRITORY = "territory.csv";
     public static final String FILE_SQL_MICRO = "dashboard_micro.sql";
     public static final String FILE_SQL_REPORT = "dashboard_report.sql";
     public static final String FILE_HOUSEHOLD_TEMPLATE = "household_template.dcf";
     public static final String FILE_LISTING_TEMPLATE = "listing_template.dcf";
-    public static final String FILE_EA_TEMPLATE = "eacode_template.dcf";
+    public static final String FILE_CARTOGRAPHY_TEMPLATE = "cartography_template.dcf";
     public static final String FILE_TERRITORY_TEMPLATE = "territory_template.csv";
-
-    private static final Logger LOGGER = Logger.getLogger(GenerateEngine.class.getName());
+    public static final String FILE_BATCH_UPDATE = "batch_update";
+    public static final String FILE_BATCH_LOAD = "batch_load";
+    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static final String FILE_SEPARATOR = getFileSeparator();
 
     public static void main(String[] args) {
         try {
@@ -57,14 +62,20 @@ public class GenerateEngine {
         File dir = new File(surveyFolder);
         File dirDictionary = new File(surveyFolder + "/" + FOLDER_DICTIONARY);
         File dirTerritory = new File(surveyFolder + "/" + FOLDER_TERRITORY);
+        File dirBatch = new File(surveyFolder + "/" + FOLDER_BATCH);
+        File dirBatchLog = new File(surveyFolder + "/" + FOLDER_BATCH + "/" + FOLDER_LOG);
         System.out.println("Starting generation of project " + surveyFolder);
         if (!dir.exists()) {
             dir.mkdir();
             dirDictionary.mkdir();
             dirTerritory.mkdir();
+            dirBatch.mkdir();
+            dirBatchLog.mkdir();
             System.out.println("Created folder " + surveyFolder);
             System.out.println("Created folder " + surveyFolder + "/" + FOLDER_DICTIONARY);
             System.out.println("Created folder " + surveyFolder + "/" + FOLDER_TERRITORY);
+            System.out.println("Created folder " + surveyFolder + "/" + FOLDER_BATCH);
+            System.out.println("Created folder " + surveyFolder + "/" + FOLDER_BATCH + "/" + FOLDER_LOG);
 
             createPropertiesFile(dir, surveyFolder, householdName, listingName, eaName);
             createReadmeFile(dir, surveyFolder);
@@ -73,11 +84,15 @@ public class GenerateEngine {
                 createListingFile(dirDictionary, surveyFolder);
             }
             if (!eaName.equals("")) {
-                createEaFile(dirDictionary, surveyFolder);
+                createCartographyFile(dirDictionary, surveyFolder);
             }
             createMetadataReadmeFile(dirDictionary, surveyFolder);
             createTerritoryFile(dirTerritory, surveyFolder);
             createTerritoryReadmeFile(dirTerritory, surveyFolder);
+            //Batch
+            createBatchScripts(dirBatch, dir);
+            createBatchReadmeFile(dirBatch, dir);
+
             System.out.println("Project " + surveyFolder + " successfully created.");
             System.out.println("Now you are ready to start processing your data!");
             System.out.println("");
@@ -589,8 +604,8 @@ public class GenerateEngine {
         }
     }
 
-    private static void createEaFile(File dirDictionary, String surveyFolder) {
-        File properties = new File(dirDictionary, FILE_EA_TEMPLATE);
+    private static void createCartographyFile(File dirDictionary, String surveyFolder) {
+        File properties = new File(dirDictionary, FILE_CARTOGRAPHY_TEMPLATE);
         try {
             if (properties.createNewFile()) {
                 FileWriter fw = new FileWriter(properties.getAbsoluteFile());
@@ -715,7 +730,7 @@ public class GenerateEngine {
                     bw.newLine();
                     bw.newLine();
                     bw.close();
-                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_EA_TEMPLATE);
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_DICTIONARY + "/" + FILE_CARTOGRAPHY_TEMPLATE);
                 }
             }
         } catch (IOException ex) {
@@ -907,6 +922,192 @@ public class GenerateEngine {
 
         } catch (IOException ex) {
             Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void createBatchReadmeFile(File dirBatch, File surveyFolder) {
+        File readme = new File(dirBatch, FILE_README_BATCH);
+        try {
+            if (readme.createNewFile()) {
+                FileWriter fw = new FileWriter(readme.getAbsoluteFile());
+                try (BufferedWriter bw = new BufferedWriter(fw)) {
+                    bw.write("This folder contains batch files, that can be scheduled during the survey.");
+                    bw.newLine();
+                    bw.write(FILE_BATCH_LOAD + getExtension() + ":   executes cspro2sql 'loader' engine.");
+                    bw.newLine();
+                    bw.write(FILE_BATCH_UPDATE + getExtension() + ": executes cspro2sql 'update' engine.");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("The output of the batch processes is stored in the log folder.");
+                    bw.newLine();
+                    bw.newLine();
+                    bw.write("USAGE:");
+                    bw.newLine();
+                    bw.write("copy " + FILE_BATCH_LOAD + getExtension() + " " + getRootFolder(surveyFolder));
+                    bw.newLine();
+                    bw.write("copy " + FILE_BATCH_UPDATE + getExtension() + " " + getRootFolder(surveyFolder));
+                    bw.newLine();
+                    bw.write("cd " + getRootFolder(surveyFolder));
+                    bw.newLine();
+                    bw.write(FILE_BATCH_LOAD + getExtension());
+                    bw.newLine();
+                    bw.write(FILE_BATCH_UPDATE + getExtension());
+                    bw.newLine();
+                    bw.close();
+                    System.out.println("Created file " + surveyFolder + "/" + FOLDER_BATCH + "/" + FILE_README_BATCH);
+                }
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void createBatchScripts(File dirBatch, File surveyFolder) {
+        File loadBatch;
+        File updateBatch;
+        if (isWindows()) {
+            loadBatch = new File(dirBatch, FILE_BATCH_LOAD + ".bat");
+            try {
+                if (loadBatch.createNewFile()) {
+                    FileWriter fw = new FileWriter(loadBatch.getAbsoluteFile());
+                    try (BufferedWriter bw = new BufferedWriter(fw)) {
+                        bw.write("@ECHO OFF");
+                        bw.newLine();
+                        bw.write("echo  %date%-%time%");
+                        bw.newLine();
+                        bw.write("ECHO Starting " + FILE_BATCH_LOAD + " execution at %date% – %time% >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_LOAD + ".log");
+                        bw.newLine();
+                        bw.write("java -cp ");
+                        bw.write("lib" + FILE_SEPARATOR + "cspro2sql.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "commons-cli-1.3.1.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "mysql-connector-java-8.0.16.jar ");
+                        bw.write("cspro2sql.Main %* -e loader -p ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + surveyFolder + ".properties" + " -f >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_LOAD + ".log 2>>&1");
+                        bw.newLine();
+                        bw.close();
+                        System.out.println("Created file " + surveyFolder + "/" + FOLDER_BATCH + "/" + FILE_BATCH_LOAD + ".bat");
+                    }
+                }
+                updateBatch = new File(dirBatch, FILE_BATCH_UPDATE + ".bat");
+                if (updateBatch.createNewFile()) {
+                    FileWriter fw = new FileWriter(updateBatch.getAbsoluteFile());
+                    try (BufferedWriter bw = new BufferedWriter(fw)) {
+                        bw.write("@ECHO OFF");
+                        bw.newLine();
+                        bw.write("echo  %date%-%time%");
+                        bw.newLine();
+                        bw.write("ECHO Starting " + FILE_BATCH_UPDATE + " execution at %date% – %time% >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_UPDATE + ".log");
+                        bw.newLine();
+                        bw.write("java -cp ");
+                        bw.write("lib" + FILE_SEPARATOR + "cspro2sql.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "commons-cli-1.3.1.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "mysql-connector-java-8.0.16.jar ");
+                        bw.write("cspro2sql.Main %* -e update -p ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + surveyFolder + ".properties" + " >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_UPDATE + ".log 2>>&1");
+                        bw.newLine();
+                        bw.close();
+                        System.out.println("Created file " + surveyFolder + "/" + FOLDER_BATCH + "/" + FILE_BATCH_UPDATE + ".bat");
+                    }
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        } else if (isUnix()) { //TO BE TESTED
+            loadBatch = new File(dirBatch, FILE_BATCH_LOAD + ".sh");
+            try {
+                if (loadBatch.createNewFile()) {
+                    FileWriter fw = new FileWriter(loadBatch.getAbsoluteFile());
+                    try (BufferedWriter bw = new BufferedWriter(fw)) {
+                        bw.write("#!/bin/bash");
+                        bw.newLine();
+                        bw.write("NOW=$(date +\"%D%T\")");
+                        bw.newLine();
+                        bw.write("ECHO Starting " + FILE_BATCH_LOAD + " execution at $NOW >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_LOAD + ".log");
+                        bw.newLine();
+                        bw.write("java -cp '");
+                        bw.write("lib" + FILE_SEPARATOR + "cspro2sql.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "commons-cli-1.3.1.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "mysql-connector-java-8.0.16.jar' ");
+                        bw.write("cspro2sql.Main $@ -e loader -p ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + surveyFolder + ".properties" + " -f >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_LOAD + ".log 2>>&1");
+                        bw.newLine();
+                        bw.close();
+                        System.out.println("Created file " + surveyFolder + "/" + FOLDER_BATCH + "/" + FILE_BATCH_LOAD + ".sh");
+                    }
+                }
+                updateBatch = new File(dirBatch, FILE_BATCH_UPDATE + ".sh");
+                if (updateBatch.createNewFile()) {
+                    FileWriter fw = new FileWriter(updateBatch.getAbsoluteFile());
+                    try (BufferedWriter bw = new BufferedWriter(fw)) {
+                        bw.write("#!/bin/bash");
+                        bw.newLine();
+                        bw.write("NOW=$(date +\"%D%T\")");
+                        bw.newLine();
+                        bw.write("ECHO Starting " + FILE_BATCH_UPDATE + " execution at $NOW >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_UPDATE + ".log");
+                        bw.newLine();
+                        bw.write("java -cp '");
+                        bw.write("lib" + FILE_SEPARATOR + "cspro2sql.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "commons-cli-1.3.1.jar;");
+                        bw.write("lib" + FILE_SEPARATOR + "mysql-connector-java-8.0.16.jar' ");
+                        bw.write("cspro2sql.Main $@ -e update -p ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + surveyFolder + ".properties" + " >> ");
+                        bw.write(surveyFolder + FILE_SEPARATOR + FOLDER_BATCH + FILE_SEPARATOR + FOLDER_LOG + FILE_SEPARATOR + FILE_BATCH_UPDATE + ".log 2>>&1");
+                        bw.newLine();
+                        bw.close();
+                        System.out.println("Created file " + surveyFolder + "/" + FOLDER_BATCH + "/" + FILE_BATCH_UPDATE + ".sh");
+                    }
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(GenerateEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            System.err.println("Unsupported operating system!");
+        }
+
+    }
+
+    private static String getRootFolder(File surveyFolder) {
+        return surveyFolder.getAbsoluteFile().getParentFile().getAbsolutePath();
+    }
+
+    private static String getProjectFolder(File surveyFolder) {
+        return surveyFolder.getAbsoluteFile().getAbsolutePath();
+    }
+
+    private static boolean isWindows() {
+        return (OS.contains("win"));
+    }
+
+    private static boolean isUnix() {
+        return (OS.contains("nux"));
+    }
+
+    private static String getFileSeparator() {
+        if (isWindows()) {
+            return "\\";
+        } else {
+            return "/";
+        }
+    }
+
+    private static String getExtension() {
+        if (isWindows()) {
+            return ".bat";
+        } else if (isUnix()) {
+            return ".sh";
+        } else {
+            return ".txt";
         }
     }
 }
