@@ -153,7 +153,7 @@ public class LoaderEngine {
                         try (Statement stmtDst = connDst.createStatement()) {
                             stmtDst.executeQuery("SET unique_checks=0");
                             stmtDst.executeQuery("SET foreign_key_checks=0");
-
+                            
                             int chunkCounter = 0;
                             chunkStart = start;
                             boolean chunkError = false;

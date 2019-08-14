@@ -1,0 +1,64 @@
+[Dictionary]
+Version=CSPro 7.0
+Label=EA code
+Name=EA_CODE_DICT
+RecordTypeStart=1
+RecordTypeLen=1
+Positions=Relative
+ZeroFill=Yes
+DecimalChar=Yes
+Note=#expected
+
+[Level]
+Label=EA code questionnaire
+Name=EA_CODE_QUEST
+
+[IdItems]
+
+[Item]
+Label=101 Region
+Name=EA_ID101
+Start=2
+Len=2
+ZeroFill=Yes
+Note=#territory[Region]
+
+[Item]
+Label=102 Province
+Name=EA_ID102
+Start=4
+Len=2
+ZeroFill=Yes
+Note=#territory[Province, EA_ID101]
+
+[Item]
+Label=103 Commune
+Name=EA_ID103
+Start=6
+Len=2
+ZeroFill=Yes
+Note=#territory[Commune, EA_ID102]
+
+[Item]
+Label=104 Enumeration Area
+Name=EA_ID104
+Start=8
+Len=2
+ZeroFill=Yes
+Note=#territory[EA, EA_ID103]
+
+[Record]
+Label=EA code record
+Name=EA_CODE_REC
+RecordTypeValue='I'
+MaxRecords=10
+RecordLen=21
+
+[Item]
+Label=Expected Households from Cartograhpy
+Name=EA_HHS
+Start=12
+Len=5
+ZeroFill=Yes
+Note=#expectedQuestionnaires
+

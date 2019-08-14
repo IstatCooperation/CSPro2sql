@@ -4,6 +4,7 @@ import cspro2sql.bean.Answer;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Record;
+import cspro2sql.utils.Utility;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

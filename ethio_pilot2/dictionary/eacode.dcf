@@ -1,0 +1,118 @@
+﻿[Dictionary]
+Version=CSPro 7.0
+Label=EA code
+Name=EA_CODE_DICT
+RecordTypeStart=1
+RecordTypeLen=1
+Positions=Relative
+ZeroFill=No
+DecimalChar=Yes
+Note=#expected
+
+[Level]
+Label=EA code questionnaire
+Name=EA_CODE_QUEST
+
+[IdItems]
+
+[Item]
+Label=101 Region
+Name=EA_ID101
+Start=2
+Len=2
+ZeroFill=Yes
+Note=#territory[Region]
+
+[ValueSet]
+Label=101 Region
+Name=EA_ID101_VS1
+Value=1;Tigray
+Value=2;Afar
+Value=3;Amhara
+Value=4;Oromia
+Value=5;Somalie
+Value=6;Benshangul
+Value=7;SNNP
+Value=12;Gambella
+Value=13;Harari
+Value=14;Addis Ababa
+Value=15;Diredawa
+
+[Item]
+Label=102 Zone
+Name=EA_ID102
+Start=4
+Len=2
+ZeroFill=Yes
+Note=#territory[Zone,EA_ID101]
+
+[Item]
+Label=103 Woreda
+Name=EA_ID103
+Start=6
+Len=2
+ZeroFill=Yes
+Note=#territory[Woreda,EA_ID102]
+
+[Item]
+Label=104 Town/City
+Name=EA_ID104
+Start=8
+Len=1
+ZeroFill=Yes
+Note=#territory[Town,EA_ID104]
+
+[Item]
+Label=105 Sub City
+Name=EA_ID105
+Start=9
+Len=2
+ZeroFill=Yes
+Note=#territory[Subcity,EA_ID104]
+
+[Item]
+Label=106 Principal  Supervision .Area
+Name=EA_ID106
+Start=11
+Len=2
+ZeroFill=Yes
+Note=#territory[Psa,EA_ID105]
+
+[Item]
+Label=107 Supervision Area
+Name=EA_ID107
+Start=13
+Len=2
+ZeroFill=Yes
+Note=#territory[SA,EA_ID106]
+
+[Record]
+Label=EA code record
+Name=EA_CODE_REC
+RecordTypeValue='1'
+MaxRecords=10
+RecordLen=24
+
+[Item]
+Label=Kebele
+Name=EA_ID108
+Start=15
+Len=3
+ZeroFill=Yes
+Note=#territory[Kebele,EA_ID107]
+
+[Item]
+Label=Enumeration Area
+Name=EA_ID109
+Start=18
+Len=2
+ZeroFill=Yes
+Note=#territory[EA,EA_ID108]
+
+[Item]
+Label=Expected Households from Cartograhpy
+Name=EA_HHS
+Start=20
+Len=5
+ZeroFill=Yes
+Note=#expectedQuestionnaires

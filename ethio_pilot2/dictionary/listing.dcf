@@ -1,0 +1,334 @@
+[Dictionary]
+Version=CSPro 7.0
+Label=Listing
+Name=LISTING_DICT
+RecordTypeStart=1
+RecordTypeLen=1
+Positions=Relative
+ZeroFill=Yes
+DecimalChar=Yes
+Note=#listing
+
+[Languages]
+ENG=English
+AMH=Amharic
+ORO=Oromifa
+SOM=Somalie
+AFR=Affar
+TIG=Tigriagna
+
+[Level]
+Label=Listing questionnaire
+Name=LISTING_QUEST
+
+[IdItems]
+
+[Item]
+Label=101 Region|101 ክልል/ከ/አስተዳደር
+Name=L_ID101
+Start=2
+Len=2
+ZeroFill=Yes
+Note=#territory[Region]
+
+[ValueSet]
+Label=101 Region|101 ክልል/ከ/አስተዳደር
+Name=L_ID101_VS1
+Value=1;Tigray|ትግራይ
+Value=2;Afar|አፋር
+Value=3;Amhara|አማራ
+Value=4;Oromia|ኦሮሚያ
+Value=5;Somalie|ሶማሌ
+Value=6;Benshangul|ቤኒሻንጉል
+Value=7;SNNP|ደቡብ ብሄር ብሄረሰቦችና ህዝቦች
+Value=12;Gambella|ጋምቤላ
+Value=13;Harari|ሀረሪ
+Value=14;Addis Ababa
+Value=15;Diredawa
+
+[Item]
+Label=102 Zone|102 ዞን
+Name=L_ID102
+Start=4
+Len=2
+ZeroFill=Yes
+Note=#territory[Zone,L_ID101]
+
+[Item]
+Label=103 Woreda|103 ወረዳ
+Name=L_ID103
+Start=6
+Len=2
+ZeroFill=Yes
+Note=#territory[Woreda,L_ID102]
+
+[Item]
+Label=104 Town/City|104 ከተማ
+Name=L_ID104
+Start=8
+Len=1
+ZeroFill=Yes
+Note=#territory[Town,L_ID103]
+
+[Item]
+Label=105 Sub city|105 ክ/ከተማ
+Name=L_ID105
+Start=9
+Len=2
+ZeroFill=Yes
+Note=#territory[Subcity,L_ID104]
+
+[Item]
+Label=106 Principal supervision area|106 ከ/መ ቦታ
+Name=L_ID106
+Start=11
+Len=2
+ZeroFill=Yes
+Note=#territory[Psa,L_ID105]
+
+[Item]
+Label=107 Supervision area|107 የመ/ቆ ቦታ
+Name=L_ID107
+Start=13
+Len=2
+ZeroFill=Yes
+Note=#territory[SA,L_ID106]
+
+[Item]
+Label=108 Kebele|108 ቀበሌ
+Name=L_ID108
+Start=15
+Len=3
+ZeroFill=Yes
+Note=#territory[Kebele,L_ID107]
+
+[Item]
+Label=109 Enumeration area|109 የቆጠራ ቦታ
+Name=L_ID109
+Start=18
+Len=2
+ZeroFill=Yes
+Note=#territory[EA,L_ID108]
+
+[Item]
+Label=10 Housing unit serial no.|10 የቤት መለያ ተራ ቁጥር
+Name=L10
+Start=20
+Len=3
+ZeroFill=Yes
+
+[ValueSet]
+Label=10 Housing unit serial no.|10 የቤት መለያ ተራ ቁጥር
+Name=L10_VS1
+Value=1:999;Valid
+
+[Item]
+Label=13 Serial no. of residence|13 የቤተሰብ መኖሪያ ተራ ቁጥር
+Name=L13
+Start=23
+Len=3
+ZeroFill=Yes
+
+[ValueSet]
+Label=13 Serial no. of residence|13 የቤተሰብ መኖሪያ ተራ ቁጥር
+Name=L13_VS1
+Value=0:999;Valid
+
+[Item]
+Label=100 Id no. of enumerator|100 የቆጣሪ መለያ
+Name=L_ID100
+Start=26
+Len=10
+ZeroFill=Yes
+
+[ValueSet]
+Label=100 Id no. of enumerator|100 የቆጣሪ መለያ
+Name=L_ID100_VS1
+Value=1:9999999999;Valid
+
+[Record]
+Label=Listing record
+Name=LISTING_REC
+RecordTypeValue='1'
+RecordLen=174
+
+[Item]
+Label=11 House number|11 የቤት ቁጥር
+Name=L11
+Start=36
+Len=20
+DataType=Alpha
+
+[Item]
+Label=12 Purpose of housing unit|12  የቤቱ አገልግሎት
+Name=L12
+Start=56
+Len=1
+ZeroFill=Yes
+
+[ValueSet]
+Label=12 Purpose of housing unit
+Name=L12_VS1
+Value=1;Residence only|ለመኖሪያ ብቻ||Hooyi rasmi ah oo kaliya |Madabah waare|ስሩዕ ነባሪ
+Value=2;Residence and Enterprise|ለመኖሪያና ለድርጅት||Hooyi rasmi ah iyo meherad|Hotel/hostel waare|ስሩዕነባርን ድርጅትን
+Value=3;Hotel/Hostel|ሆቴል ወይም ሆስቴል||Hudheel/Aqal martidu seexadaan|Alaaqa qarsiyyih buxal waare|ናይ ሓባርመንበሪ ሆቴል/ሆስቴል
+Value=4;Other Collective Quarter|ለሌላ ጋርዮሽ||Hooyi wadareed|XBFT/KOL/JAM/ Waare|ካልእ ናይ ሓባር መንበሪ
+Value=5;Other Enterprise|ለሌላ ድርጅት||Shirkad kale|Gitoysô buxal waare|ካልእ ድርጅት
+Value=6;Vaccant/not reserved|ያልተያዘ ወይንም ባዶ||Aan la deganayn/boos Maran||ሰብ ዘይቡሉ/ባዶ
+Value=7;Under Construction|በመሰራት ላይ ያለ||Dhismihiisu Socottoo||ኣብ ምስራሕ ዘሎ ገዛ
+
+[Item]
+Label=14 Name of head of the household|14 የቤተሰብ ሀላፊ ሙሉ ስም
+Name=L14
+Start=57
+Len=40
+DataType=Alpha
+
+[Item]
+Label=15 Use irrigation|15 ቤተሰቡ መስኖ ይጠቀማል
+Name=L15
+Start=97
+Len=1
+ZeroFill=Yes
+
+[ValueSet]
+Label=15 Use irrigation|15 ቤተሰቡ መስኖ ይጠቀማል
+Name=L15_VS1
+Value=1;Yes|አዎን||Haa||እወ
+Value=2;No|የለም||Maya||ኣየምርትን
+
+[Item]
+Label=16 Male
+Name=L16
+Start=98
+Len=3
+ZeroFill=Yes
+
+[Item]
+Label=17 Female
+Name=L17
+Start=101
+Len=3
+ZeroFill=Yes
+
+[Item]
+Label=18 Total
+Name=L18
+Start=104
+Len=3
+ZeroFill=Yes
+
+[Item]
+Label=Final Result
+Name=L19
+Start=107
+Len=1
+ZeroFill=Yes
+
+[ValueSet]
+Label=Final Result
+Name=L19_VS1
+Value=1:2
+
+[Item]
+Label=Interview type
+Name=L20
+Start=108
+Len=1
+ZeroFill=Yes
+
+[ValueSet]
+Label=Interview type
+Name=L20_VS1
+Value=1;Tablet
+Value=2;Paper
+
+[Item]
+Label=CSPro version
+Name=L21
+Start=109
+Len=16
+DataType=Alpha
+
+[Item]
+Label=Application version
+Name=L22
+Start=125
+Len=14
+
+[Item]
+Label=Device ID
+Name=L23
+Start=139
+Len=36
+DataType=Alpha
+
+[Record]
+Label=GPS
+Name=GPA
+RecordTypeValue='2'
+RecordLen=82
+
+[Item]
+Label=A1_Latitude
+Name=A1
+Start=36
+Len=13
+Decimal=9
+ZeroFill=Yes
+Note=#lat
+
+[ValueSet]
+Label=A1_Latitude
+Name=A1_VS1
+Value=2.000000000:9.000000000;Valid
+Value=0.000000000;Not taken
+
+[Item]
+Label=A2_Longitude
+Name=A2
+Start=49
+Len=13
+Decimal=9
+ZeroFill=Yes
+Note=#lon
+
+[ValueSet]
+Label=A2_Longitude
+Name=A2_VS1
+Value=30.000000000:50.000000000;Valid
+Value=0.000000000;Not taken
+
+[Item]
+Label=A3_Altitude
+Name=A3
+Start=62
+Len=7
+ZeroFill=Yes
+
+[Item]
+Label=A4_Accuracy
+Name=A4
+Start=69
+Len=7
+ZeroFill=Yes
+
+[Item]
+Label=A13_Household Read Time
+Name=A13
+Start=76
+Len=6
+ZeroFill=Yes
+
+[Item]
+Label=Take GPS for listing
+Name=TAKE_GPS_LIST
+Start=82
+Len=1
+ZeroFill=Yes
+
+[ValueSet]
+Label=Take GPS for listing
+Name=TAKE_GPS_LIST_VS1
+Value=1;ጂፒኤስ መውሰድ እፈልጋለሁ
+Value=2;ጂፒኤስ መውሰድ አልፈልግም"

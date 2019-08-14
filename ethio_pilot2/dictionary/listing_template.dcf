@@ -1,0 +1,71 @@
+[Dictionary]
+Version=CSPro 7.0
+Label=Listing
+Name=LISTING_DICT
+RecordTypeStart=1
+RecordTypeLen=1
+Positions=Relative
+ZeroFill=Yes
+DecimalChar=Yes
+Note=#listing
+
+[Level]
+Label=Listing questionnaire
+Name=LISTING_QUEST
+
+[IdItems]
+
+[Item]
+Label=101 Region
+Name=L_ID101
+Start=2
+Len=2
+ZeroFill=Yes
+Note=#territory[Region]
+
+[Item]
+Label=102 Province
+Name=L_ID102
+Start=4
+Len=2
+ZeroFill=Yes
+Note=#territory[Province, L_ID101]
+
+[Item]
+Label=103 Commune
+Name=L_ID103
+Start=6
+Len=2
+ZeroFill=Yes
+Note=#territory[Commune, L_ID102]
+
+[Item]
+Label=104 Enumeration Area
+Name=L_ID104
+Start=8
+Len=2
+ZeroFill=Yes
+Note=#territory[EA, L_ID103]
+
+[Record]
+Label=GPS
+Name=GPA
+RecordTypeValue='2'
+RecordLen=82
+
+[Item]
+Label=A1_Latitude
+Name=A1
+Start=36
+Len=13
+Decimal=9
+Note=#lat
+
+[Item]
+Label=A2_Longitude
+Name=A2
+Start=49
+Len=13
+Decimal=9
+Note=#lon
+
