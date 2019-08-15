@@ -381,7 +381,7 @@ public class MonitorWriter {
         out.println("     `freshlist_expected` decimal(24,4) DEFAULT NULL,");
         out.println("     `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,");
         out.println("      PRIMARY KEY (`id`)");
-        out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;");
+        out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
         out.println();
     }
 
