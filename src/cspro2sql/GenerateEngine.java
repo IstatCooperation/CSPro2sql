@@ -206,7 +206,11 @@ public class GenerateEngine {
                     bw.write("cd " + System.getProperty("user.dir"));
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e scan -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e scan -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    } else {
+                        bw.write("./cspro2sql.sh -e scan -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.newLine();
@@ -219,7 +223,11 @@ public class GenerateEngine {
                     bw.write("cd " + System.getProperty("user.dir"));
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e schema -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_MICRO);
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e schema -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_MICRO);
+                    } else {
+                        bw.write("./cspro2sql.sh -e schema -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_MICRO);
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 2] Create the Dashboard database. Use your favourite Mysql client or execute the following command ");
@@ -232,19 +240,31 @@ public class GenerateEngine {
                     bw.write("[Step 3] Load CSPro data in Dashboard database (step to be repeated during fieldwork)");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    } else {
+                        bw.write("./cspro2sql.sh -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 4] Create and populate the territory table");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    } else {
+                        bw.write("./cspro2sql.sh -e territory -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 5] Generate the Dashboard report tables script " + surveyFolder + "/" + FILE_SQL_REPORT);
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e monitor -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_REPORT);
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e monitor -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_REPORT);
+                    } else {
+                        bw.write("./cspro2sql.sh -e monitor -p " + surveyFolder + "/" + surveyFolder + ".properties -o " + surveyFolder + "/" + FILE_SQL_REPORT);
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.write("[Step 6] Create the Dashboard report tables. Use your favourite Mysql client or execute the following command");
@@ -257,10 +277,18 @@ public class GenerateEngine {
                     bw.write("[Step 7] Update reports (step to be repeated during fieldwork)");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    } else {
+                        bw.write("./cspro2sql.sh -e loader -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    }
                     bw.newLine();
                     bw.newLine();
-                    bw.write("cspro2sql -e update -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    if (isWindows()) {
+                        bw.write("cspro2sql -e update -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    } else{
+                        bw.write("./cspro2sql.sh -e update -p " + surveyFolder + "/" + surveyFolder + ".properties");
+                    }
                     bw.newLine();
                     bw.newLine();
                     bw.close();
