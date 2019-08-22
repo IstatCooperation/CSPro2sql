@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -78,7 +79,9 @@ public class SchemaWriter {
 
             for (Record record : dictionary.getRecords()) {
                 ps.println("CREATE TABLE " + record.getFullTableName() + " (");
-                ps.println("    ID INT(9) UNSIGNED AUTO_INCREMENT,");
+                //ps.println("    ID INT(9) UNSIGNED AUTO_INCREMENT,");
+                //NEW ENGINE removed AUTO_INCREMENT
+                ps.println("    ID INT(9) UNSIGNED,");
                 if (!record.isMainRecord()) {
                     ps.println("    " + record.getMainRecord().getName() + " INT(9) UNSIGNED NOT NULL,");
                     ps.println("    COUNTER INT(9) UNSIGNED NOT NULL,");
@@ -89,6 +92,9 @@ public class SchemaWriter {
                 if (!record.isMainRecord()) {
                     ps.println("    INDEX (" + record.getMainRecord().getName() + "),");
                     ps.println("    FOREIGN KEY (" + record.getMainRecord().getName() + ") REFERENCES " + record.getMainRecord().getFullTableName() + "(id),");
+                } else{
+                    ps.println("    INDEX (" + printItems(record.getItems()) + "),");
+                    
                 }
                 ps.println("    PRIMARY KEY (ID)");
                 ps.println(") ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
@@ -312,7 +318,7 @@ public class SchemaWriter {
 
         int order = 0;
         Integer unitId = null;
-        Integer conceptId = null;
+        Integer conceptId;
 
         for (Record record : dictionary.getRecords()) {
             for (Item item : record.getItems()) {
@@ -360,4 +366,18 @@ public class SchemaWriter {
         }
     }
 
+    private static String printItems(List<Item> items){
+        String out = "";
+        boolean isFirst = true;
+        for(Item item : items){
+            if(isFirst){
+                out += "`" + item.getName()+ "`";
+                isFirst = false;
+            }
+            else{
+                out += ", `" + item.getName() + "`";
+            }
+        }
+        return out;
+    }
 }

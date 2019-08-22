@@ -30,6 +30,7 @@ public class ConnectionParams {
     private String uri;
     private String username;
     private String password;
+    private String schema;
 
     public static ConnectionParams getSourceParams(Properties prop) {
         ConnectionParams sourceParams = new ConnectionParams();
@@ -38,6 +39,8 @@ public class ConnectionParams {
                 + "/" + prop.getProperty("db.source.schema").trim() + MYSQL_PARAMS);
         sourceParams.setUsername(prop.getProperty("db.source.username").trim());
         sourceParams.setPassword(prop.getProperty("db.source.password").trim());
+        sourceParams.setSchema(prop.getProperty("db.source.schema").trim());
+        
         return sourceParams;
     }
 
@@ -53,6 +56,8 @@ public class ConnectionParams {
         }
         sourceParams.setUsername(prop.getProperty("db.dest.username").trim());
         sourceParams.setPassword(prop.getProperty("db.dest.password").trim());
+        sourceParams.setSchema(prop.getProperty("db.dest.schema").trim());
+        
         return sourceParams;
     }
 
@@ -78,6 +83,14 @@ public class ConnectionParams {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+     public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
 }

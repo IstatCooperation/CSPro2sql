@@ -2,9 +2,11 @@ package cspro2sql.writer;
 
 import cspro2sql.bean.Answer;
 import cspro2sql.bean.Dictionary;
+import cspro2sql.bean.DictionaryInfo;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Questionnaire;
 import cspro2sql.bean.Record;
+import cspro2sql.sql.DictionaryQuery;
 import cspro2sql.sql.PreparedStatementManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -97,4 +99,49 @@ public class InsertWriter {
         }
     }
 
+    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tableLastId, boolean hasErrors,
+            StringBuilder script, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo, int loaded) throws SQLException {
+
+        int parentId = -1;
+        int id;
+
+        for (Questionnaire quest : quests) { //cicle on questionnaires
+            if (!quest.isDeleted()) {
+                for (Map.Entry<Record, List<List<Answer>>> e : quest.getMicrodataSet()) {
+
+                    Record record = e.getKey();
+
+                    id = tableLastId.get(record.getTableName());
+
+                    if (!record.isMainRecord()) {
+                        parentId = tableLastId.get(record.getMainRecord().getTableName());
+                    }
+
+                    for (int i = 0; i < e.getValue().size(); i++) {
+                        id = id + 1;
+                        List<Answer> values = e.getValue().get(i);
+                        PreparedStatementManager.newPopulateInsertPreparedStatement(record, id, parentId, i, values, schema, stmt.getConnection());
+                    }
+
+                    tableLastId.put(record.getTableName(), id);
+
+                    if (hasErrors) { //commit each row
+                        try {
+                            PreparedStatementManager.execute(record);
+                            stmt.getConnection().commit();
+                            loaded++;
+
+                        } catch (SQLException e1) {
+                            stmt.getConnection().rollback();
+                            String msg = "Impossible to load questionnaire - " + e1.getMessage();
+                            dictionaryQuery.writeError(dictionaryInfo, msg, quest, script.toString());
+                            dictionaryInfo.incErrors();
+                        }
+                    }
+                }
+            }
+        }
+
+        PreparedStatementManager.execute(); //insert all records
+    }
 }

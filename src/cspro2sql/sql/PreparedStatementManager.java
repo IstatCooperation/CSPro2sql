@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,12 @@ public class PreparedStatementManager {
         String key = record.getName();
         PreparedStatement insertPS = RECORDS_LIST.get(key);
         insertPS.executeBatch();
+    }
+
+    public static void execute() throws SQLException {
+        for (PreparedStatement insertPS : RECORDS_LIST.values()) {
+            insertPS.executeBatch();
+        }
     }
 
     public static void populateInsertPreparedStatement(Record record, int id, int index, List<Answer> values, String schema, Connection conn) throws SQLException {
@@ -164,4 +171,92 @@ public class PreparedStatementManager {
         return sql;
     }
 
+    public static void newPopulateInsertPreparedStatement(Record record, int id, int parentId, int index, List<Answer> values, String schema, Connection conn) throws SQLException {
+        PreparedStatement insertPS = newGetInsertStmt(record, schema, conn);
+        int field = 1;
+        if (!record.isMainRecord()) {
+            insertPS.setInt(field++, id);
+            insertPS.setInt(field++, parentId);
+            insertPS.setInt(field++, index);
+        } else {
+            insertPS.setInt(field++, id);
+        }
+        for (Answer a : values) {
+            Item item = a.getItem();
+            String v = a.getValue();
+            switch (item.getDataType()) {
+                case Dictionary.ITEM_DECIMAL:
+                    if (v == null) {
+                        insertPS.setNull(field++, Types.INTEGER);
+                    } else if (v.contains(".")) {
+                        insertPS.setDouble(field++, Double.parseDouble(v.trim()));
+                    } else {
+                        insertPS.setLong(field++, Long.parseLong(v.trim()));
+                    }
+                    break;
+                case Dictionary.ITEM_ALPHA:
+                    if (v == null) {
+                        insertPS.setNull(field++, Types.VARCHAR);
+                    } else {
+                        insertPS.setString(field++, v);
+                    }
+                    break;
+                default:
+            }
+        }
+        insertPS.addBatch();
+    }
+
+    private static PreparedStatement newGetInsertStmt(Record record, String schema, Connection conn) {
+        String key = record.getName();
+        if (!RECORDS_LIST.containsKey(key)) {
+            RECORDS_LIST.put(key, newCreateInsertPreparedStatement(record, schema, conn));
+        }
+        return RECORDS_LIST.get(key);
+    }
+
+    private static PreparedStatement newCreateInsertPreparedStatement(Record record, String schema, Connection conn) {
+        String sql = "insert into " + schema + "." + record.getTableName() + " (";
+        String values = "";
+        boolean first = true;
+        if (!record.isMainRecord()) {
+            first = false;
+            sql += "ID," + record.getMainRecord().getName() + ",COUNTER";
+            values += "?,?,?";
+        } else {
+            first = false;
+            sql += "ID";
+            values += "?";
+        }
+        for (Item item : record.getItems()) {
+            if (first) {
+                first = false;
+            } else {
+                sql += ",";
+                values += ",";
+            }
+            sql += item.getName();
+            values += "?";
+            for (Item subitem : item.getSubItems()) {
+                sql += ",";
+                sql += subitem.getName();
+                values += ",?";
+            }
+        }
+        sql += ") values (";
+        sql += values;
+        sql += ")";
+        //System.out.println(sql);
+        try {
+            return conn.prepareStatement(sql);
+        } catch (SQLException ex) {
+            System.out.println("Impossible to create prepared statement (" + ex.getMessage() + ")");
+            System.exit(1);
+        }
+        return null;
+    }
+
+    public static void clearRecordListMap(){
+        RECORDS_LIST.clear();
+    }
 }

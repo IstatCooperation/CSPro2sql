@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS @SCHEMA.DASHBOARD_META_UNIT (
   `NOTE` text,
   `PARENT_ID` int(11) DEFAULT NULL,
   `CONCEPT_ID` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_unit_concept_idx` (`concept_id`),
-  CONSTRAINT `fk_unit_concept_idx` FOREIGN KEY (`concept_id`) REFERENCES `dashboard_meta_concept` (`id`)
+  PRIMARY KEY (`ID`),
+  KEY `fk_unit_concept_idx` (`CONCEPT_ID`),
+  CONSTRAINT `fk_unit_concept_idx` FOREIGN KEY (`CONCEPT_ID`) REFERENCES DASHBOARD_META_CONCEPT (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

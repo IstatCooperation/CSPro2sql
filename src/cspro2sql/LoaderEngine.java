@@ -1,5 +1,6 @@
 package cspro2sql;
 
+import cspro2sql.bean.Concepts;
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.DictionaryInfo;
@@ -7,6 +8,7 @@ import cspro2sql.bean.Questionnaire;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.QuestionnaireReader;
 import cspro2sql.sql.DictionaryQuery;
+import cspro2sql.sql.PreparedStatementManager;
 import cspro2sql.utils.Utility;
 import cspro2sql.writer.DeleteWriter;
 import cspro2sql.writer.InsertWriter;
@@ -21,9 +23,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +55,7 @@ import java.util.logging.Logger;
 public class LoaderEngine {
 
     private static final Logger LOGGER = Logger.getLogger(LoaderEngine.class.getName());
-    private static final int MAX_COMMIT_SIZE = 100;
+    private static final int MAX_COMMIT_SIZE = 1000;
 
     public static void main(String[] args) {
         Properties prop = new Properties();
@@ -84,12 +88,12 @@ public class LoaderEngine {
                 String srcSchema = prop.getProperty("db.source.schema").trim();
                 String srcDataTable = dictionary.getName();
 
-                //Connect to the source database
+                //Connect to CSPro database
                 ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
                 try (Connection connSrc = DriverManager.getConnection(sourceConnection.getUri(), sourceConnection.getUsername(), sourceConnection.getPassword())) {
                     connSrc.setReadOnly(true);
                     Long start, stop, chunkStart, chunkStop;
-                    //Connect to the destination database
+                    //Connect to Dashboard database
                     if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
                         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                     }
@@ -100,7 +104,7 @@ public class LoaderEngine {
                         DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
 
                         start = System.currentTimeMillis();
-                        
+
                         DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo(srcDataTable);
                         int lastRevision = dictionaryInfo.getRevision();
 
@@ -125,6 +129,7 @@ public class LoaderEngine {
                             return false;
                         }
 
+                        //Load data from CSPro database
                         ResultSet result;
                         PreparedStatement selectQuestionnaire;
                         if (allRecords) {
@@ -153,12 +158,19 @@ public class LoaderEngine {
                         try (Statement stmtDst = connDst.createStatement()) {
                             stmtDst.executeQuery("SET unique_checks=0");
                             stmtDst.executeQuery("SET foreign_key_checks=0");
+
+                            //Get list of tables to be updated and their max id
+                            Map<String, Integer> tablesLastId = getDictionaryTablesLastId(dictionary, stmtDst);
                             
+                            //Clear prepared statements
+                            PreparedStatementManager.clearRecordListMap();
+
                             int chunkCounter = 0;
                             chunkStart = start;
                             boolean chunkError = false;
                             List<Questionnaire> quests = new LinkedList<>();
-                            while (result.next()) {
+
+                            while (result.next()) { //Cicle on CSPro questionnaires
                                 String questionnaire = result.getString(1);
                                 byte[] guid = result.getBytes(2);
                                 boolean deleted = result.getInt(3) == 1;
@@ -182,7 +194,7 @@ public class LoaderEngine {
                                     if (checkOnly) {
                                         System.out.print((chunkError) ? '-' : 'x');
                                     } else {
-                                        chunkError |= commitList(dictionary, quests, stmtDst, dictionaryQuery, dictionaryInfo, out);
+                                        chunkError = newCommitList(dictionary, quests, stmtDst, dictionaryQuery, dictionaryInfo, tablesLastId, out);
                                         dictionaryQuery.updateLoaded(dictionaryInfo);
                                         chunkCounter++;
                                         if (chunkError) {
@@ -193,9 +205,9 @@ public class LoaderEngine {
                                         }
                                         if (chunkCounter % 20 == 0) {
                                             chunkStop = System.currentTimeMillis();
-                                            System.out.println(" Load: " + dictionaryInfo.getLoaded() 
-                                                    + " Err: " + dictionaryInfo.getErrors() 
-                                                    + " Tot: " + dictionaryInfo.getTotal() 
+                                            System.out.println(" Load: " + dictionaryInfo.getLoaded()
+                                                    + " Err: " + dictionaryInfo.getErrors()
+                                                    + " Tot: " + dictionaryInfo.getTotal()
                                                     + " Time: " + Utility.convertMillis(chunkStop - chunkStart));
                                             chunkStart = chunkStop;
                                         }
@@ -218,7 +230,7 @@ public class LoaderEngine {
                         }
 
                         stop = System.currentTimeMillis();
-                        
+
                         if (errors) {
                             System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
                         } else {
@@ -293,4 +305,96 @@ public class LoaderEngine {
         return error;
     }
 
+    private static boolean newCommitList(Dictionary dictionary, List<Questionnaire> quests, Statement stmtDst,
+            DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo, Map<String, Integer> tablesLastId, PrintStream out) throws SQLException {
+
+        boolean error = false;
+        int deleted = 0;
+        int loaded = 0;
+
+        try {
+            StringBuilder script = out == null ? null : new StringBuilder();
+            //Delete 'deleted & updated questionnaires'
+            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false);
+            //Insert questionnaires
+            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false, script, dictionaryQuery, dictionaryInfo, loaded);
+            //Commit
+            stmtDst.getConnection().commit();
+
+            deleted = getDeleted(quests);
+            loaded = quests.size() - deleted;
+
+        } catch (SQLException e) {
+            stmtDst.getConnection().rollback();
+            deleted = 0;
+            loaded = 0;
+            error = true;
+
+            StringBuilder script = new StringBuilder();
+            //Delete 'deleted & updated questionnaires'
+            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true);
+            //Insert questionnaires
+            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true, script, dictionaryQuery, dictionaryInfo, loaded);
+
+            deleted = getDeleted(quests);
+
+        }
+        dictionaryInfo.incLoaded(loaded);
+        dictionaryInfo.incDeleted(deleted);
+        return error;
+    }
+
+    private static Map<String, Integer> getDictionaryTablesLastId(Dictionary dictionary, Statement stmt) throws SQLException {
+
+        Integer conceptId = -1;
+        Map<String, Integer> tableRecords = new LinkedHashMap<>();
+        String tableName;
+        if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
+            conceptId = Concepts.HOUSEHOLD_ID;
+        } else if (dictionary.hasTag(Dictionary.TAG_LISTING)) {
+            conceptId = Concepts.LISTING_ID;
+        } else if (dictionary.hasTag(Dictionary.TAG_EXPECTED)) {
+            conceptId = Concepts.EXPECTED_ID;
+        }
+        String selectSql = "SELECT table_name FROM " + dictionary.getSchema() + ".dashboard_meta_unit where concept_id = " + conceptId
+                + " UNION SELECT unit.table_name FROM " + dictionary.getSchema() + ".dashboard_meta_unit as unit "
+                + " JOIN " + dictionary.getSchema() + ".dashboard_meta_unit as parent on unit.parent_id = parent.id"
+                + " WHERE parent.concept_id = " + conceptId;
+
+        //System.out.println(selectSql);
+        try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
+            while (executeQuery.next()) {
+                tableName = executeQuery.getString(1);
+                if (tableName != null) {
+                    tableRecords.put(tableName, null);
+                }
+            }
+        }
+
+        String selectMax;
+        Integer max;
+        for (Map.Entry<String, Integer> entry : tableRecords.entrySet()) {
+            selectMax = "SELECT MAX(ID) FROM " + dictionary.getSchema() + "." + entry.getKey();
+            try (ResultSet executeQuery = stmt.executeQuery(selectMax)) {
+                while (executeQuery.next()) {
+                    max = executeQuery.getInt(1);
+                    if (max != null) {
+                        entry.setValue(max);
+                    }
+                }
+            }
+
+        }
+        return tableRecords;
+    }
+
+    private static int getDeleted(List<Questionnaire> quests) {
+        int deleted = 0;
+        for (Questionnaire quest : quests) {
+            if (quest.isDeleted()) {
+                deleted++;
+            }
+        }
+        return deleted;
+    }
 }

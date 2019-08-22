@@ -2,12 +2,16 @@ package cspro2sql.writer;
 
 import cspro2sql.bean.Answer;
 import cspro2sql.bean.Dictionary;
+import cspro2sql.bean.DictionaryInfo;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Questionnaire;
 import cspro2sql.bean.Record;
+import cspro2sql.sql.DictionaryQuery;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +84,98 @@ public class DeleteWriter {
             script.append("delete from ").append(schema).append(".").append(mainRecord.getTableName()).append(" where ID = ").append(id).append(";\n");
         }
         stmt.executeUpdate("delete from " + schema + "." + mainRecord.getTableName() + " where ID = " + id);
+    }
+
+    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId, boolean hasErrors) throws SQLException {
+
+        List<Integer> mainRecordId = new ArrayList<>();
+        boolean isFirstRecord = true;
+        String selectSql = "";
+
+        //Generate select to get deleted questionnaires ids
+        for (Questionnaire quest : quests) { //cicle on questionnaires
+            for (Map.Entry<Record, List<List<Answer>>> e : quest.getMicrodataSet()) {
+
+                Record record = e.getKey();
+
+                if (record.isMainRecord()) { //get questionnaire main record
+                    if (isFirstRecord) {
+                        selectSql = "select ID from " + schema + "." + record.getTableName() + " where (";
+                        isFirstRecord = false;
+                    } else {
+                        selectSql += " OR (";
+                    }
+                    int i = 0;
+                    boolean first = true;
+
+                    for (Item item : record.getItems()) {
+                        Answer value = e.getValue().get(0).get(i++);
+                        if (first) {
+                            first = false;
+                        } else {
+                            selectSql += " AND ";
+                        }
+                        switch (item.getDataType()) {
+                            case Dictionary.ITEM_DECIMAL:
+                                if (value.getValue() == null) {
+                                    selectSql += item.getName() + " is null";
+                                } else {
+                                    selectSql += item.getName() + "=" + Integer.parseInt(value.getValue());
+                                }
+                                break;
+                            case Dictionary.ITEM_ALPHA:
+                                if (value.getValue() == null) {
+                                    selectSql += item.getName() + " is null";
+                                } else {
+                                    selectSql += item.getName() + "='" + value.getValue() + "'";
+                                }
+                                break;
+                            default:
+                        }
+                    }
+                    selectSql += ")";
+                }
+            }
+        }
+        //System.out.println(selectSql);
+
+        //Get main record ids
+        int id = 0;
+        try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
+            while (executeQuery.next()) {
+                id = executeQuery.getInt(1);
+                if (id > 0) {
+                    mainRecordId.add(id);
+                }
+            }
+        }
+
+        String deleteSql;
+        if (mainRecordId.size() > 0) {
+            for (String tableName : tablesLastId.keySet()) {
+                deleteSql = "delete from " + schema + "." + tableName + " where ID in (" + getIdList(mainRecordId) + ")";
+                //System.out.println(deleteSql);
+                stmt.executeUpdate(deleteSql);
+            }
+        }
+
+        if (hasErrors) { //if there are errors commit
+            stmt.getConnection().commit();
+        }
+    }
+
+    private static String getIdList(List<Integer> ids) {
+        boolean isFirst = true;
+        String out = "";
+        for (Integer id : ids) {
+            if (isFirst) {
+                isFirst = false;
+                out += id;
+            } else {
+                out += "," + id;
+            }
+        }
+        return out;
     }
 
 }
