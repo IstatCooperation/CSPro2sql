@@ -20,6 +20,18 @@ Libraries:
 
 CsPro2Sql is simple to install: all you need is to download and unzip the `CsPro2Sql.zip`. Depending on your system execute from the command line `CsPro2Sql.bat` or `CsPro2Sql.sh`.
 
+## Database configuration ![New release](https://img.shields.io/badge/new-release%201.0-brightgreen?style=flat-square)
+
+This new release of the software solves loader engine performance issues. To get the best performances from your InnoDB you should set the following properties in your my.ini (or my.cnf):
+
+```
+innodb_flush_log_at_trx_commit=2
+innodb_log_buffer_size=128M
+innodb_buffer_pool_size=512M
+innodb_log_file_size=256M
+```
+The first setting will strongly impact the performance on the loaded engine!
+
 ## Usage
 
 CsPro2Sql is composed of several engines (run `CsPro2Sql` to get usage info):
