@@ -86,11 +86,14 @@ public class DeleteWriter {
         stmt.executeUpdate("delete from " + schema + "." + mainRecord.getTableName() + " where ID = " + id);
     }
 
-    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId) throws SQLException {
+    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId, boolean hasErrors) throws SQLException {
 
         List<Integer> mainRecordId = new ArrayList<>();
         boolean isFirstRecord = true;
-        String selectSql = "";
+        StringBuilder selectSql = new StringBuilder();
+        String whereClause;
+        boolean isFirstAnd, parsingError;
+        boolean isFirstOr = true;
 
         //Generate select to get deleted questionnaires ids
         for (Questionnaire quest : quests) { //cicle on questionnaires
@@ -99,41 +102,52 @@ public class DeleteWriter {
                 Record record = e.getKey();
 
                 if (record.isMainRecord()) { //get questionnaire main record
+
                     if (isFirstRecord) {
-                        selectSql = "select ID from " + schema + "." + record.getTableName() + " where (";
+                        selectSql.append("select ID from ").append(schema).append(".").append(record.getTableName()).append(" where ");
                         isFirstRecord = false;
-                    } else {
-                        selectSql += " OR (";
                     }
                     int i = 0;
-                    boolean first = true;
-
+                    isFirstAnd = true;
+                    whereClause = "";
+                    parsingError = false;
                     for (Item item : record.getItems()) {
                         Answer value = e.getValue().get(0).get(i++);
-                        if (first) {
-                            first = false;
+                        if (isFirstAnd) {
+                            isFirstAnd = false;
                         } else {
-                            selectSql += " AND ";
+                            whereClause += " AND ";
                         }
                         switch (item.getDataType()) {
                             case Dictionary.ITEM_DECIMAL:
                                 if (value.getValue() == null) {
-                                    selectSql += item.getName() + " is null";
+                                    whereClause += item.getName() + " is null";
                                 } else {
-                                    selectSql += item.getName() + "=" + Integer.parseInt(value.getValue());
+                                    try {
+                                        whereClause += item.getName() + "=" + Integer.parseInt(value.getValue());
+                                    } catch (NumberFormatException ex) {
+                                        parsingError = true;
+                                    }
                                 }
                                 break;
                             case Dictionary.ITEM_ALPHA:
                                 if (value.getValue() == null) {
-                                    selectSql += item.getName() + " is null";
+                                    whereClause += item.getName() + " is null";
                                 } else {
-                                    selectSql += item.getName() + "='" + value.getValue() + "'";
+                                    whereClause += item.getName() + "='" + value.getValue() + "'";
                                 }
                                 break;
                             default:
                         }
                     }
-                    selectSql += ")";
+                    if (!parsingError) {
+                        if (isFirstOr) {
+                            isFirstOr = false;
+                        } else {
+                            selectSql.append(" OR ");
+                        }
+                        selectSql.append("(").append(whereClause).append(")");
+                    }
                 }
             }
         }
@@ -141,7 +155,7 @@ public class DeleteWriter {
 
         //Get main record ids
         int id = 0;
-        try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
+        try (ResultSet executeQuery = stmt.executeQuery(selectSql.toString())) {
             while (executeQuery.next()) {
                 id = executeQuery.getInt(1);
                 if (id > 0) {
@@ -157,6 +171,10 @@ public class DeleteWriter {
                 //System.out.println(deleteSql);
                 stmt.executeUpdate(deleteSql);
             }
+        }
+
+        if (hasErrors) {
+            stmt.getConnection().commit();
         }
     }
 

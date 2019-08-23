@@ -1,10 +1,13 @@
 package cspro2sql;
 
+import cspro2sql.bean.Answer;
 import cspro2sql.bean.Concepts;
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
 import cspro2sql.bean.DictionaryInfo;
+import cspro2sql.bean.Item;
 import cspro2sql.bean.Questionnaire;
+import cspro2sql.bean.Record;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.QuestionnaireReader;
 import cspro2sql.sql.DictionaryQuery;
@@ -21,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -320,7 +324,7 @@ public class LoaderEngine {
         try {
             StringBuilder script = out == null ? null : new StringBuilder();
             //Delete 'deleted & updated questionnaires'
-            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId);
+            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false);
             //Insert all questionnaires
             InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false, script, dictionaryQuery, dictionaryInfo);
             //Commit
@@ -330,6 +334,8 @@ public class LoaderEngine {
             stmtDst.getConnection().rollback();
             error = true;
             StringBuilder script = new StringBuilder();
+            //Delete 'deleted & updated questionnaires'
+            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true);
             //Clear record statements
             PreparedStatementManager.clearRecordListMap();
             //Get last stored ids
