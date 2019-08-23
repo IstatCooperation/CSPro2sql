@@ -100,48 +100,62 @@ public class InsertWriter {
     }
 
     public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tableLastId, boolean hasErrors,
-            StringBuilder script, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo, int loaded) throws SQLException {
+            StringBuilder script, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo) throws SQLException {
 
-        int parentId = -1;
+        int parentId = -1, loaded = 0, deleted = 0;
         int id;
 
         for (Questionnaire quest : quests) { //cicle on questionnaires
-            if (!quest.isDeleted()) {
+            if (quest.isDeleted()) {
+                deleted++;
+            } else {
                 for (Map.Entry<Record, List<List<Answer>>> e : quest.getMicrodataSet()) {
 
-                    Record record = e.getKey();
+                    try {
+                        Record record = e.getKey();
 
-                    id = tableLastId.get(record.getTableName());
+                        id = tableLastId.get(record.getTableName());
 
-                    if (!record.isMainRecord()) {
-                        parentId = tableLastId.get(record.getMainRecord().getTableName());
-                    }
+                        if (!record.isMainRecord()) {
+                            parentId = tableLastId.get(record.getMainRecord().getTableName());
+                        }
 
-                    for (int i = 0; i < e.getValue().size(); i++) {
-                        id = id + 1;
-                        List<Answer> values = e.getValue().get(i);
-                        PreparedStatementManager.newPopulateInsertPreparedStatement(record, id, parentId, i, values, schema, stmt.getConnection());
-                    }
+                        for (int i = 0; i < e.getValue().size(); i++) {
+                            id = id + 1;
+                            List<Answer> values = e.getValue().get(i);
+                            PreparedStatementManager.newPopulateInsertPreparedStatement(record, id, parentId, i, values, schema, stmt.getConnection());
+                        }
 
-                    tableLastId.put(record.getTableName(), id);
+                        tableLastId.put(record.getTableName(), id);
 
-                    if (hasErrors) { //commit each row
-                        try {
+                        if (hasErrors) { //commit each row
                             PreparedStatementManager.execute(record);
                             stmt.getConnection().commit();
-                            loaded++;
+                            if (record.isMainRecord()) {
+                                loaded++;
+                            }
+                        }
 
-                        } catch (SQLException e1) {
+                    } catch (Exception e2) {
+                        if (hasErrors) {
                             stmt.getConnection().rollback();
-                            String msg = "Impossible to load questionnaire - " + e1.getMessage();
+                            String msg = "Impossible to load questionnaire - " + e2.getMessage();
                             dictionaryQuery.writeError(dictionaryInfo, msg, quest, script.toString());
                             dictionaryInfo.incErrors();
+
+                        } else {
+                            throw new SQLException("Error loading data"); //restart loading process
                         }
                     }
                 }
             }
         }
-
         PreparedStatementManager.execute(); //insert all records
+
+        if (!hasErrors) {
+            loaded = quests.size() - deleted;
+        }
+        dictionaryInfo.incLoaded(loaded);
+        dictionaryInfo.incDeleted(deleted);
     }
 }

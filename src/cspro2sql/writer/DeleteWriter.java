@@ -86,7 +86,7 @@ public class DeleteWriter {
         stmt.executeUpdate("delete from " + schema + "." + mainRecord.getTableName() + " where ID = " + id);
     }
 
-    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId, boolean hasErrors) throws SQLException {
+    public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId) throws SQLException {
 
         List<Integer> mainRecordId = new ArrayList<>();
         boolean isFirstRecord = true;
@@ -157,10 +157,6 @@ public class DeleteWriter {
                 //System.out.println(deleteSql);
                 stmt.executeUpdate(deleteSql);
             }
-        }
-
-        if (hasErrors) { //if there are errors commit
-            stmt.getConnection().commit();
         }
     }
 

@@ -160,8 +160,10 @@ public class LoaderEngine {
                             stmtDst.executeQuery("SET foreign_key_checks=0");
 
                             //Get list of tables to be updated and their max id
-                            Map<String, Integer> tablesLastId = getDictionaryTablesLastId(dictionary, stmtDst);
-                            
+                            Map<String, Integer> tablesLastId = new LinkedHashMap<>();
+
+                            setDictionaryTablesLastId(tablesLastId, dictionary, stmtDst);
+
                             //Clear prepared statements
                             PreparedStatementManager.clearRecordListMap();
 
@@ -205,10 +207,15 @@ public class LoaderEngine {
                                         }
                                         if (chunkCounter % 20 == 0) {
                                             chunkStop = System.currentTimeMillis();
-                                            System.out.println(" Load: " + dictionaryInfo.getLoaded()
-                                                    + " Err: " + dictionaryInfo.getErrors()
-                                                    + " Tot: " + dictionaryInfo.getTotal()
-                                                    + " Time: " + Utility.convertMillis(chunkStop - chunkStart));
+                                            System.out.print(" Loaded: " + dictionaryInfo.getLoaded() + " quests;");
+                                            if (dictionaryInfo.getErrors() > 0) {
+                                                System.out.print(" Detected errors in " + dictionaryInfo.getErrors() + " quests;");
+                                            } else {
+                                                System.out.print(" No errors detected;");
+                                            }
+                                            System.out.print(" Parsed " + dictionaryInfo.getTotal() + " CSPro quests;");
+                                            System.out.print(" Time: " + Utility.convertMillis(chunkStop - chunkStart));
+                                            System.out.println();
                                             chunkStart = chunkStop;
                                         }
                                     }
@@ -309,45 +316,33 @@ public class LoaderEngine {
             DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo, Map<String, Integer> tablesLastId, PrintStream out) throws SQLException {
 
         boolean error = false;
-        int deleted = 0;
-        int loaded = 0;
 
         try {
             StringBuilder script = out == null ? null : new StringBuilder();
             //Delete 'deleted & updated questionnaires'
-            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false);
-            //Insert questionnaires
-            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false, script, dictionaryQuery, dictionaryInfo, loaded);
+            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId);
+            //Insert all questionnaires
+            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, false, script, dictionaryQuery, dictionaryInfo);
             //Commit
             stmtDst.getConnection().commit();
 
-            deleted = getDeleted(quests);
-            loaded = quests.size() - deleted;
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             stmtDst.getConnection().rollback();
-            deleted = 0;
-            loaded = 0;
             error = true;
-
             StringBuilder script = new StringBuilder();
-            //Delete 'deleted & updated questionnaires'
-            DeleteWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true);
-            //Insert questionnaires
-            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true, script, dictionaryQuery, dictionaryInfo, loaded);
-
-            deleted = getDeleted(quests);
-
+            //Clear record statements
+            PreparedStatementManager.clearRecordListMap();
+            //Get last stored ids
+            setDictionaryTablesLastId(tablesLastId, dictionary, stmtDst);
+            //Insert questionnaires one by one 
+            InsertWriter.create(dictionary.getSchema(), dictionary, quests, stmtDst, tablesLastId, true, script, dictionaryQuery, dictionaryInfo);
         }
-        dictionaryInfo.incLoaded(loaded);
-        dictionaryInfo.incDeleted(deleted);
         return error;
     }
 
-    private static Map<String, Integer> getDictionaryTablesLastId(Dictionary dictionary, Statement stmt) throws SQLException {
+    private static void setDictionaryTablesLastId(Map<String, Integer> tableLastId, Dictionary dictionary, Statement stmt) throws SQLException {
 
         Integer conceptId = -1;
-        Map<String, Integer> tableRecords = new LinkedHashMap<>();
         String tableName;
         if (dictionary.hasTag(Dictionary.TAG_HOUSEHOLD)) {
             conceptId = Concepts.HOUSEHOLD_ID;
@@ -362,39 +357,27 @@ public class LoaderEngine {
                 + " WHERE parent.concept_id = " + conceptId;
 
         //System.out.println(selectSql);
-        try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
-            while (executeQuery.next()) {
-                tableName = executeQuery.getString(1);
-                if (tableName != null) {
-                    tableRecords.put(tableName, null);
+        if (tableLastId.isEmpty()) {
+            try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
+                while (executeQuery.next()) {
+                    tableName = executeQuery.getString(1);
+                    if (tableName != null) {
+                        tableLastId.put(tableName, null);
+                    }
                 }
             }
         }
 
         String selectMax;
-        Integer max;
-        for (Map.Entry<String, Integer> entry : tableRecords.entrySet()) {
+        for (Map.Entry<String, Integer> entry : tableLastId.entrySet()) {
             selectMax = "SELECT MAX(ID) FROM " + dictionary.getSchema() + "." + entry.getKey();
+            //System.out.println(selectMax);
             try (ResultSet executeQuery = stmt.executeQuery(selectMax)) {
                 while (executeQuery.next()) {
-                    max = executeQuery.getInt(1);
-                    if (max != null) {
-                        entry.setValue(max);
-                    }
+                    entry.setValue(executeQuery.getInt(1));
                 }
             }
 
         }
-        return tableRecords;
-    }
-
-    private static int getDeleted(List<Questionnaire> quests) {
-        int deleted = 0;
-        for (Questionnaire quest : quests) {
-            if (quest.isDeleted()) {
-                deleted++;
-            }
-        }
-        return deleted;
     }
 }

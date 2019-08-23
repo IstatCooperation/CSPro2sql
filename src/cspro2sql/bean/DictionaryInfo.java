@@ -44,7 +44,7 @@ public class DictionaryInfo {
     private final String name;
     private final Status status;
     private final int revision;
-    
+
     private int total;
     private int loaded;
     private int deleted;
@@ -138,19 +138,27 @@ public class DictionaryInfo {
         out.println("Revision: " + revision);
         out.println("Loader status: " + (status.name()));
         if (status == Status.RUNNING) {
-            out.println("Load to revision: " + nextRevision);
-            out.println("Loaded: " + loaded);
-            out.println("Deleted: " + deleted);
-            out.println("Errors: " + errors);
-            out.println("Total: " + total);
+            out.println("Loading to revision: " + nextRevision);
+            out.println("Loaded: " + loaded + " quests");
+            out.println("Deleted: " + deleted + " quests");
+            if (errors > 0) {
+                out.println("Detected errors in " + errors + " quests");
+            } else {
+                out.println("No errors detected");
+            }
+            out.println("Parsed: " + total + " CSPro quests");
         }
     }
 
     public void printShort(PrintStream out, Long millis) {
-        out.println("Loaded: " + loaded);
-        out.println("Deleted: " + deleted);
-        out.println("Errors: " + errors);
-        out.println("Total: " + total);
+        out.println("Loaded: " + loaded + " quests");
+        out.println("Deleted: " + deleted + " quests");
+        if (errors > 0) {
+            out.println("Detected errors in " + errors + " quests");
+        } else {
+            out.println("No errors detected");
+        }
+        out.println("Parsed: " + total + " CSPro quests");
         out.println("Time: " + Utility.convertMillis(millis));
     }
 
