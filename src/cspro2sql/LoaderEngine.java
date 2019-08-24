@@ -383,7 +383,6 @@ public class LoaderEngine {
                     entry.setValue(executeQuery.getInt(1));
                 }
             }
-
         }
     }
 }

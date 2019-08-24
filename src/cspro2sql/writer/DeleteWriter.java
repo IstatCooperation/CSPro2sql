@@ -89,11 +89,14 @@ public class DeleteWriter {
     public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tablesLastId, boolean hasErrors) throws SQLException {
 
         List<Integer> mainRecordId = new ArrayList<>();
+        String mainRecordName = "";
+        String mainRecordTableName = "";
         boolean isFirstRecord = true;
         StringBuilder selectSql = new StringBuilder();
-        String whereClause;
+        StringBuilder whereClause = new StringBuilder();;
         boolean isFirstAnd, parsingError;
         boolean isFirstOr = true;
+        int id, i;
 
         //Generate select to get deleted questionnaires ids
         for (Questionnaire quest : quests) { //cicle on questionnaires
@@ -105,26 +108,28 @@ public class DeleteWriter {
 
                     if (isFirstRecord) {
                         selectSql.append("select ID from ").append(schema).append(".").append(record.getTableName()).append(" where ");
+                        mainRecordTableName = record.getTableName();
+                        mainRecordName = record.getName();
                         isFirstRecord = false;
                     }
-                    int i = 0;
+                    i = 0;
                     isFirstAnd = true;
-                    whereClause = "";
+                    whereClause.setLength(0);
                     parsingError = false;
                     for (Item item : record.getItems()) {
                         Answer value = e.getValue().get(0).get(i++);
                         if (isFirstAnd) {
                             isFirstAnd = false;
                         } else {
-                            whereClause += " AND ";
+                            whereClause.append(" AND ");
                         }
                         switch (item.getDataType()) {
                             case Dictionary.ITEM_DECIMAL:
                                 if (value.getValue() == null) {
-                                    whereClause += item.getName() + " is null";
+                                    whereClause.append(item.getName()).append(" is null");
                                 } else {
                                     try {
-                                        whereClause += item.getName() + "=" + Integer.parseInt(value.getValue());
+                                        whereClause.append(item.getName()).append("=").append(Integer.parseInt(value.getValue()));
                                     } catch (NumberFormatException ex) {
                                         parsingError = true;
                                     }
@@ -132,9 +137,9 @@ public class DeleteWriter {
                                 break;
                             case Dictionary.ITEM_ALPHA:
                                 if (value.getValue() == null) {
-                                    whereClause += item.getName() + " is null";
+                                    whereClause.append(item.getName()).append(" is null");
                                 } else {
-                                    whereClause += item.getName() + "='" + value.getValue() + "'";
+                                    whereClause.append(item.getName()).append("='").append(value.getValue()).append("'");
                                 }
                                 break;
                             default:
@@ -154,7 +159,6 @@ public class DeleteWriter {
         //System.out.println(selectSql);
 
         //Get main record ids
-        int id = 0;
         try (ResultSet executeQuery = stmt.executeQuery(selectSql.toString())) {
             while (executeQuery.next()) {
                 id = executeQuery.getInt(1);
@@ -163,11 +167,16 @@ public class DeleteWriter {
                 }
             }
         }
+        selectSql.setLength(0);//RELEASE MEMORY
 
         String deleteSql;
         if (mainRecordId.size() > 0) {
             for (String tableName : tablesLastId.keySet()) {
-                deleteSql = "delete from " + schema + "." + tableName + " where ID in (" + getIdList(mainRecordId) + ")";
+                if(tableName.equals(mainRecordTableName)){ //Delete main record rows
+                    deleteSql = "delete from " + schema + "." + tableName + " where ID in (" + getIdList(mainRecordId) + ")";
+                } else{ //Delete children rows
+                    deleteSql = "delete from " + schema + "." + tableName + " where " + mainRecordName + "  in (" + getIdList(mainRecordId) + ")";
+                }
                 //System.out.println(deleteSql);
                 stmt.executeUpdate(deleteSql);
             }

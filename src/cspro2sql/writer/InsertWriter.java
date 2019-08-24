@@ -102,8 +102,8 @@ public class InsertWriter {
     public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tableLastId, boolean hasErrors,
             StringBuilder script, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo) throws SQLException {
 
-        int parentId = -1, loaded = 0, deleted = 0;
-        int id;
+        int parentId = -1, loaded = 0, deleted = 0, id;
+        boolean mainRecordError = false;
 
         for (Questionnaire quest : quests) { //cicle on questionnaires
             if (quest.isDeleted()) {
@@ -111,13 +111,19 @@ public class InsertWriter {
             } else {
                 for (Map.Entry<Record, List<List<Answer>>> e : quest.getMicrodataSet()) {
 
+                    Record record = e.getKey();
+                    
                     try {
-                        Record record = e.getKey();
-
                         id = tableLastId.get(record.getTableName());
 
-                        if (!record.isMainRecord()) {
-                            parentId = tableLastId.get(record.getMainRecord().getTableName());
+                        if (record.isMainRecord()) { 
+                            mainRecordError = false; //reset error
+                        } else{
+                            if(mainRecordError){
+                                throw new SQLException("Error in parent record data"); //cannot load child
+                            } else{
+                                parentId = tableLastId.get(record.getMainRecord().getTableName());
+                            }
                         }
 
                         for (int i = 0; i < e.getValue().size(); i++) {
@@ -135,14 +141,16 @@ public class InsertWriter {
                                 loaded++;
                             }
                         }
-
+                        
                     } catch (Exception e2) {
                         if (hasErrors) {
                             stmt.getConnection().rollback();
                             String msg = "Impossible to load questionnaire - " + e2.getMessage();
                             dictionaryQuery.writeError(dictionaryInfo, msg, quest, script.toString());
                             dictionaryInfo.incErrors();
-
+                            if(record.isMainRecord()){
+                                mainRecordError = true;
+                            }
                         } else {
                             throw new SQLException("Error loading data"); //restart loading process
                         }
