@@ -49,6 +49,12 @@ public class PreparedStatementManager {
             insertPS.executeBatch();
         }
     }
+    
+    public static void close() throws SQLException {
+        for (PreparedStatement insertPS : RECORDS_LIST.values()) {
+            insertPS.close();
+        }
+    }
 
     public static void populateInsertPreparedStatement(Record record, int id, int index, List<Answer> values, String schema, Connection conn) throws SQLException {
         PreparedStatement insertPS = getInsertStmt(record, schema, conn);

@@ -91,9 +91,11 @@ public class DeleteWriter {
         List<Integer> mainRecordId = new ArrayList<>();
         String mainRecordName = "";
         String mainRecordTableName = "";
-        boolean isFirstRecord = true;
         StringBuilder selectSql = new StringBuilder();
-        StringBuilder whereClause = new StringBuilder();;
+        StringBuilder whereClause = new StringBuilder();
+        StringBuilder deleteSql = new StringBuilder();
+        StringBuilder idList = new StringBuilder();
+        boolean isFirstRecord = true;
         boolean isFirstAnd, parsingError;
         boolean isFirstOr = true;
         int id, i;
@@ -114,7 +116,6 @@ public class DeleteWriter {
                     }
                     i = 0;
                     isFirstAnd = true;
-                    whereClause.setLength(0);
                     parsingError = false;
                     for (Item item : record.getItems()) {
                         Answer value = e.getValue().get(0).get(i++);
@@ -153,6 +154,7 @@ public class DeleteWriter {
                         }
                         selectSql.append("(").append(whereClause).append(")");
                     }
+                    whereClause.setLength(0); //RELEASE MEMORY
                 }
             }
         }
@@ -166,39 +168,42 @@ public class DeleteWriter {
                     mainRecordId.add(id);
                 }
             }
+            executeQuery.close();
         }
-        selectSql.setLength(0);//RELEASE MEMORY
+        selectSql.setLength(0); //RELEASE MEMORY
 
-        String deleteSql;
         if (mainRecordId.size() > 0) {
+            setIdList(idList, mainRecordId);
             for (String tableName : tablesLastId.keySet()) {
-                if(tableName.equals(mainRecordTableName)){ //Delete main record rows
-                    deleteSql = "delete from " + schema + "." + tableName + " where ID in (" + getIdList(mainRecordId) + ")";
-                } else{ //Delete children rows
-                    deleteSql = "delete from " + schema + "." + tableName + " where " + mainRecordName + "  in (" + getIdList(mainRecordId) + ")";
+                if (tableName.equals(mainRecordTableName)) { //Delete main record rows
+                    deleteSql.append("delete from ").append(schema).append(".").append(tableName).append(" where ID in (").append(idList).append(")");
+                } else { //Delete children rows
+                    deleteSql.append("delete from ").append(schema).append(".").append(tableName).append(" where ").append(mainRecordName).append(" in (").append(idList).append(")");
                 }
                 //System.out.println(deleteSql);
-                stmt.executeUpdate(deleteSql);
+                stmt.executeUpdate(deleteSql.toString());
+                deleteSql.setLength(0); //Clear string
             }
         }
+        idList.setLength(0); //RELEASE MEMORY
+        deleteSql.setLength(0); //RELEASE MEMORY
 
         if (hasErrors) {
             stmt.getConnection().commit();
         }
     }
 
-    private static String getIdList(List<Integer> ids) {
+    private static StringBuilder setIdList(StringBuilder idList, List<Integer> ids) {
         boolean isFirst = true;
-        String out = "";
         for (Integer id : ids) {
             if (isFirst) {
                 isFirst = false;
-                out += id;
+                idList.append(id);
             } else {
-                out += "," + id;
+                idList.append(",").append(id);
             }
         }
-        return out;
+        return idList;
     }
 
 }

@@ -102,7 +102,7 @@ public class InsertWriter {
     public static void create(String schema, Dictionary dictionary, List<Questionnaire> quests, Statement stmt, Map<String, Integer> tableLastId, boolean hasErrors,
             StringBuilder script, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo) throws SQLException {
 
-        int parentId = -1, loaded = 0, deleted = 0, id;
+        int parentId = -1, loaded = 0, deleted = 0, id = 0;
         boolean mainRecordError = false;
 
         for (Questionnaire quest : quests) { //cicle on questionnaires
@@ -112,16 +112,16 @@ public class InsertWriter {
                 for (Map.Entry<Record, List<List<Answer>>> e : quest.getMicrodataSet()) {
 
                     Record record = e.getKey();
-                    
+
                     try {
                         id = tableLastId.get(record.getTableName());
 
-                        if (record.isMainRecord()) { 
+                        if (record.isMainRecord()) {
                             mainRecordError = false; //reset error
-                        } else{
-                            if(mainRecordError){
-                                throw new SQLException("Error in parent record data"); //cannot load child
-                            } else{
+                        } else {
+                            if (mainRecordError) {
+                                continue; //don't store child if main record has error
+                            } else {
                                 parentId = tableLastId.get(record.getMainRecord().getTableName());
                             }
                         }
@@ -141,14 +141,16 @@ public class InsertWriter {
                                 loaded++;
                             }
                         }
-                        
+
                     } catch (Exception e2) {
                         if (hasErrors) {
                             stmt.getConnection().rollback();
                             String msg = "Impossible to load questionnaire - " + e2.getMessage();
+                            script.append(PreparedStatementManager.getSqlCode(record, id, e.getValue(), schema));
                             dictionaryQuery.writeError(dictionaryInfo, msg, quest, script.toString());
+                            script.setLength(0);
                             dictionaryInfo.incErrors();
-                            if(record.isMainRecord()){
+                            if (record.isMainRecord()) {
                                 mainRecordError = true;
                             }
                         } else {
@@ -158,9 +160,8 @@ public class InsertWriter {
                 }
             }
         }
-        PreparedStatementManager.execute(); //insert all records
-
         if (!hasErrors) {
+            PreparedStatementManager.execute(); //insert all records
             loaded = quests.size() - deleted;
         }
         dictionaryInfo.incLoaded(loaded);

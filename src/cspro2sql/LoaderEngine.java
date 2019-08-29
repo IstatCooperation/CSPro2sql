@@ -76,7 +76,7 @@ public class LoaderEngine {
                     prop.getProperty("dictionary").trim(),
                     prop.getProperty("dictionary.prefix").trim());
 
-            execute(dictionaries, prop, true, false, false, true, false, null);
+            execute(dictionaries, prop, false, false, false, false, false, null);
         } catch (Exception ex) {
             System.exit(1);
         }
@@ -357,14 +357,17 @@ public class LoaderEngine {
         } else if (dictionary.hasTag(Dictionary.TAG_EXPECTED)) {
             conceptId = Concepts.EXPECTED_ID;
         }
-        String selectSql = "SELECT table_name FROM " + dictionary.getSchema() + ".dashboard_meta_unit where concept_id = " + conceptId
-                + " UNION SELECT unit.table_name FROM " + dictionary.getSchema() + ".dashboard_meta_unit as unit "
-                + " JOIN " + dictionary.getSchema() + ".dashboard_meta_unit as parent on unit.parent_id = parent.id"
-                + " WHERE parent.concept_id = " + conceptId;
+        StringBuilder selectSql = new StringBuilder();
 
         //System.out.println(selectSql);
         if (tableLastId.isEmpty()) {
-            try (ResultSet executeQuery = stmt.executeQuery(selectSql)) {
+
+            selectSql.append("SELECT table_name FROM ").append(dictionary.getSchema()).append(".dashboard_meta_unit where concept_id = ").append(conceptId);
+            selectSql.append(" UNION SELECT unit.table_name FROM ").append(dictionary.getSchema()).append(".dashboard_meta_unit as unit ");
+            selectSql.append(" JOIN ").append(dictionary.getSchema()).append(".dashboard_meta_unit as parent on unit.parent_id = parent.id");
+            selectSql.append(" WHERE parent.concept_id = ").append(conceptId);
+
+            try (ResultSet executeQuery = stmt.executeQuery(selectSql.toString())) {
                 while (executeQuery.next()) {
                     tableName = executeQuery.getString(1);
                     if (tableName != null) {
@@ -372,17 +375,19 @@ public class LoaderEngine {
                     }
                 }
             }
+            selectSql.setLength(0);
         }
 
-        String selectMax;
+        StringBuilder selectMax  = new StringBuilder();
         for (Map.Entry<String, Integer> entry : tableLastId.entrySet()) {
-            selectMax = "SELECT MAX(ID) FROM " + dictionary.getSchema() + "." + entry.getKey();
+            selectMax.append("SELECT MAX(ID) FROM ").append(dictionary.getSchema()).append(".").append(entry.getKey());
             //System.out.println(selectMax);
-            try (ResultSet executeQuery = stmt.executeQuery(selectMax)) {
+            try (ResultSet executeQuery = stmt.executeQuery(selectMax.toString())) {
                 while (executeQuery.next()) {
                     entry.setValue(executeQuery.getInt(1));
                 }
             }
+            selectMax.setLength(0);
         }
     }
 }
