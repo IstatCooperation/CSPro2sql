@@ -212,6 +212,31 @@ public class DictionaryQuery {
             insertError.getConnection().commit();
         }
     }
+    
+    public void writeTerritoryError(String msg, String territoryFileLine, String script) throws SQLException {
+        try {
+            insertError.setInt(1, Concepts.HOUSEHOLD_ID); //Error loading territory row
+            insertError.setString(2, msg);
+            insertError.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            insertError.setBytes(4, "".getBytes()); //non empty value
+            insertError.setString(5, territoryFileLine);
+            insertError.setString(6, script);
+            insertError.executeUpdate();
+            insertError.getConnection().commit();
+        } catch (Exception ex) {
+            System.err.println(territoryFileLine);
+            insertError.setInt(1, Concepts.HOUSEHOLD_ID);
+            insertError.setString(2, msg);
+            insertError.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            insertError.setBytes(4, "".getBytes()); //non empty value
+            insertError.setString(5, ex.getMessage());
+            insertError.setString(6, "ERROR");
+            insertError.executeUpdate();
+            insertError.getConnection().commit();
+        }
+    }
+    
+    
 
     private void setStatus(int dictionaryId, PreparedStatement stmt) throws SQLException {
         stmt.setInt(1, dictionaryId);

@@ -2,11 +2,13 @@ package cspro2sql;
 
 import cspro2sql.bean.ConnectionParams;
 import cspro2sql.bean.Dictionary;
+import cspro2sql.bean.DictionaryInfo;
 import cspro2sql.bean.Item;
 import cspro2sql.bean.Territory;
 import cspro2sql.bean.TerritoryItem;
 import cspro2sql.reader.DictionaryReader;
 import cspro2sql.reader.TerritoryReader;
+import cspro2sql.sql.DictionaryQuery;
 import cspro2sql.utils.Utility;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +17,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,8 +46,9 @@ import java.util.logging.Logger;
  */
 public class TerritoryEngine {
 
-    private static final int COMMIT_SIZE = 100;
+    private static final int COMMIT_SIZE = 1000;
     private static final Logger LOGGER = Logger.getLogger(TerritoryEngine.class.getName());
+    private static final Map<Integer, String> errors = new HashMap<Integer, String>();
 
     public static void main(String[] args) {
         Properties prop = new Properties();
@@ -75,54 +80,76 @@ public class TerritoryEngine {
     }
 
     public static boolean execute(Dictionary dictionary, Properties prop) {
-        Long start, stop;
+        Long start, stop, chunkStart, chunkStop;
+        int chunkCounter = 1, errorCounter = 0;
+        boolean chunkError = false;
         List<Territory> territoryList;
+        List<Territory> territoryChunk;
         try {
             territoryList = TerritoryReader.parseTerritory(prop.getProperty("territory"), dictionary);
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
                 ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
-                try (Connection connSrc = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
-                    connSrc.setAutoCommit(false);
-                    try (Statement stmt = connSrc.createStatement()) {
-                        int rowCounter = 1;
-                        start = System.currentTimeMillis();
-                        if (createTerritoryTable(dictionary, stmt, prop) && truncateTerritory(stmt, prop)) {
-                            System.out.print("Loading territory table... ");
-                            System.out.println();
-                            String insertQuery = "INSERT INTO " + prop.getProperty("db.dest.schema") + ".`territory` VALUES(";
-                            String insertValues = "";
-                            String territoryCode = "";
+                try (Connection connDst = DriverManager.getConnection(destConnection.getUri(), destConnection.getUsername(), destConnection.getPassword())) {
+                    connDst.setAutoCommit(false);
 
-                            for (Territory territory : territoryList) {
-                                if (!isTerritoryStored(dictionary, territory, stmt, prop)) {
-                                    int counter = 1;
-                                    for (TerritoryItem territoryItem : territory.getItemsList()) {
-                                        if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
-                                            insertValues += "\"" + territoryItem.getName() + "\",";
-                                        } else {
-                                            insertValues += Integer.parseInt(territoryItem.getName()) + ",";
-                                            territoryCode += territoryItem.getName();
-                                        }
-                                        counter++;
-                                    }
-                                    stmt.executeUpdate(insertQuery + insertValues + "\"" + territoryCode + "\")");
-                                    if (rowCounter % COMMIT_SIZE == 0) {
-                                        System.out.print("+");
-                                        connSrc.commit();
-                                    }
-                                    rowCounter++;
-                                    insertValues = "";
-                                    territoryCode = "";
-                                }
+                    DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
+                    DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo("territory");
+
+                    try (Statement stmt = connDst.createStatement()) {
+
+                        start = System.currentTimeMillis();
+
+                        createTerritoryTable(dictionary, stmt, prop);
+                        truncateTerritory(stmt, prop);
+
+                        chunkStart = start;
+
+                        System.out.print("Loading territory table... ");
+                        System.out.println();
+
+                        for (int i = 0; i < territoryList.size(); i += COMMIT_SIZE) {
+
+                            chunkError = false;
+
+                            if (i + COMMIT_SIZE >= territoryList.size()) {
+                                territoryChunk = territoryList.subList(i, territoryList.size());
+                            } else {
+                                territoryChunk = territoryList.subList(i, i + COMMIT_SIZE);
                             }
+
+                            try {
+                                commitList(dictionary, prop, territoryChunk, dictionaryQuery, dictionaryInfo, connDst, stmt, false);
+                            } catch (Exception e) {
+                                connDst.rollback();
+                                chunkError = true;
+                                commitList(dictionary, prop, territoryChunk, dictionaryQuery, dictionaryInfo, connDst, stmt, true);
+                            }
+
+                            if (chunkError) {
+                                System.out.print("-");
+                            } else {
+                                System.out.print("+");
+                            }
+
+                            if (chunkCounter % 20 == 0) {
+                                chunkStop = System.currentTimeMillis();
+                                System.out.print(" Loaded: " + chunkCounter * COMMIT_SIZE + " rows;");
+                                if (dictionaryInfo.getErrors() > 0) {
+                                    System.out.print(" Detected errors in " + errorCounter + " rows;");
+                                } else {
+                                    System.out.print(" No errors detected;");
+                                }
+                                System.out.print(" Time: " + Utility.convertMillis(chunkStop - chunkStart));
+                                System.out.println();
+                                chunkStart = chunkStop;
+                            }
+
+                            chunkCounter++;
                         }
-                        connSrc.commit();
-                        stop = System.currentTimeMillis();
-                        System.out.println(" Load: " + rowCounter + " Time: " + Utility.convertMillis(stop - start));
                     }
                 }
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+            } catch (Exception ex) {
                 System.out.println("Database exception (" + ex.getMessage() + ")");
                 return false;
             }
@@ -132,6 +159,66 @@ public class TerritoryEngine {
         }
 
         return true;
+    }
+
+    private static void commitList(Dictionary dictionary, Properties prop, List<Territory> territoryChunk, DictionaryQuery dictionaryQuery, DictionaryInfo dictionaryInfo,
+            Connection connDst, Statement stmt, Boolean hasError) throws SQLException {
+
+        StringBuilder insertQuery = new StringBuilder();
+        StringBuilder insertValues = new StringBuilder();
+        StringBuilder territoryCode = new StringBuilder();
+
+        int chunkCounter = 0;
+        for (Territory territory : territoryChunk) {
+
+            System.out.println(chunkCounter);
+            
+            try {
+                if (!isTerritoryStored(dictionary, territory, stmt, prop)) {
+                    insertQuery.append("INSERT INTO ").append(prop.getProperty("db.dest.schema")).append(".`territory` VALUES(");
+                    int counter = 1;
+                    for (TerritoryItem territoryItem : territory.getItemsList()) {
+                        if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
+                            insertValues.append("\"").append(territoryItem.getName()).append("\",");
+                        } else {
+                            insertValues.append(Integer.parseInt(territoryItem.getName())).append(",");
+                            territoryCode.append(territoryItem.getName());
+                        }
+                        counter++;
+                    }
+                    stmt.executeUpdate(insertQuery.append(insertValues).append("\"").append(territoryCode).append("\")").toString());
+
+                    if (hasError) {
+                        connDst.commit();
+                    }
+
+                    chunkCounter++;
+                }
+
+            } catch (Exception e) {
+                if (hasError) {
+                    connDst.rollback();
+                    dictionaryQuery.writeTerritoryError("Error loading item " + dictionaryInfo.getLoaded() + chunkCounter, territory.toString(),
+                            insertQuery.append(insertValues).append("\"").append(territoryCode).append("\")").toString());
+                    dictionaryInfo.incErrors();
+                    errors.put(dictionaryInfo.getLoaded() + chunkCounter, territory.toString());
+                } else {
+                    throw new SQLException("Error loading data"); //restart loading process
+                }
+            } finally {
+                //clear strings
+                insertQuery.setLength(0);
+                insertValues.setLength(0);
+                territoryCode.setLength(0);
+            }
+
+        }
+
+        if (!hasError) {
+            connDst.commit();
+            dictionaryInfo.incLoaded(chunkCounter);
+        }
+
     }
 
     private static boolean truncateTerritory(Statement stmt, Properties prop) {

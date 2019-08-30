@@ -52,10 +52,10 @@ public class Territory {
         itemsList.add(territoryItem);
     }
 
-    public void addItem(String name){
+    public void addItem(String name) {
         itemsList.add(new TerritoryItem(null, null, name));
     }
-    
+
     public boolean isEmpty() {
         return this.items.isEmpty();
     }
@@ -63,7 +63,7 @@ public class Territory {
     public List<TerritoryItem> getItemsList() {
         return itemsList;
     }
-    
+
     public TerritoryItem getFirst() {
         return this.itemsList.get(0);
     }
@@ -74,6 +74,15 @@ public class Territory {
 
     public int size() {
         return this.itemsList.size();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder out = new StringBuilder();
+        for (TerritoryItem territoryItem : getItemsList()) {
+            out.append("\"").append(territoryItem.getName()).append("\",");
+        }
+        return out.toString();
     }
 
 }
