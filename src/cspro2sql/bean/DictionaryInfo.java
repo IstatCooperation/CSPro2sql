@@ -52,6 +52,19 @@ public class DictionaryInfo {
     private byte[] lastGuid;
     private int nextRevision;
 
+    public DictionaryInfo(){
+        this.id = 0;
+        this.name = "";
+        this.status = Status.STOP;
+        this.revision = 0;
+        this.total = 0;
+        this.loaded = 0;
+        this.deleted = 0;
+        this.errors = 0;
+        this.lastGuid = null;
+        this.nextRevision = 0;
+    }
+    
     public DictionaryInfo(int id, String name, int status, int revision, int total, int loaded, int deleted, int errors, byte[] lastGuid, int nextRevision) {
         this.id = id;
         this.name = name;
@@ -119,6 +132,10 @@ public class DictionaryInfo {
 
     public void incTotal() {
         this.total++;
+    }
+    
+    public void incTotal(int total) {
+        this.total += total;
     }
 
     public void incErrors() {

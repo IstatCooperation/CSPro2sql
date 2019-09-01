@@ -17,8 +17,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -81,8 +84,9 @@ public class TerritoryEngine {
 
     public static boolean execute(Dictionary dictionary, Properties prop) {
         Long start, stop, chunkStart, chunkStop;
-        int chunkCounter = 1, errorCounter = 0;
-        boolean chunkError = false;
+        SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
+        int chunkCounter = 1;
+        boolean chunkError;
         List<Territory> territoryList;
         List<Territory> territoryChunk;
         try {
@@ -94,7 +98,8 @@ public class TerritoryEngine {
                     connDst.setAutoCommit(false);
 
                     DictionaryQuery dictionaryQuery = new DictionaryQuery(connDst);
-                    DictionaryInfo dictionaryInfo = dictionaryQuery.getDictionaryInfo("territory");
+                    DictionaryInfo dictionaryInfo = new DictionaryInfo();
+                    dictionaryInfo.incTotal(territoryList.size());
 
                     try (Statement stmt = connDst.createStatement()) {
 
@@ -136,7 +141,7 @@ public class TerritoryEngine {
                                 chunkStop = System.currentTimeMillis();
                                 System.out.print(" Loaded: " + chunkCounter * COMMIT_SIZE + " rows;");
                                 if (dictionaryInfo.getErrors() > 0) {
-                                    System.out.print(" Detected errors in " + errorCounter + " rows;");
+                                    System.out.print(" Detected errors in " + dictionaryInfo.getErrors() + " rows;");
                                 } else {
                                     System.out.print(" No errors detected;");
                                 }
@@ -146,6 +151,20 @@ public class TerritoryEngine {
                             }
 
                             chunkCounter++;
+                        }
+                        System.out.println();
+                        stop = System.currentTimeMillis();
+                        if (dictionaryInfo.getErrors() > 0) {
+                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
+                        } else {
+                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed!");
+                        }
+
+                        dictionaryInfo.printShort(System.out, stop - start);
+                        System.out.println();
+                        System.out.println("Error report:");
+                        for (Map.Entry<Integer, String> entry : errors.entrySet()) {
+                            System.out.println("Id " + entry.getKey() + "; Content " + entry.getValue());
                         }
                     }
                 }
@@ -171,29 +190,25 @@ public class TerritoryEngine {
         int chunkCounter = 0;
         for (Territory territory : territoryChunk) {
 
-            System.out.println(chunkCounter);
-            
             try {
-                if (!isTerritoryStored(dictionary, territory, stmt, prop)) {
-                    insertQuery.append("INSERT INTO ").append(prop.getProperty("db.dest.schema")).append(".`territory` VALUES(");
-                    int counter = 1;
-                    for (TerritoryItem territoryItem : territory.getItemsList()) {
-                        if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
-                            insertValues.append("\"").append(territoryItem.getName()).append("\",");
-                        } else {
-                            insertValues.append(Integer.parseInt(territoryItem.getName())).append(",");
-                            territoryCode.append(territoryItem.getName());
-                        }
-                        counter++;
+                insertQuery.append("INSERT INTO ").append(prop.getProperty("db.dest.schema")).append(".`territory` VALUES(");
+                int counter = 1;
+                for (TerritoryItem territoryItem : territory.getItemsList()) {
+                    if (counter % 2 == 0) { //I assume that even columns contain description *_NAME
+                        insertValues.append("\"").append(territoryItem.getName()).append("\",");
+                    } else {
+                        insertValues.append(Integer.parseInt(territoryItem.getName())).append(",");
+                        territoryCode.append(territoryItem.getName());
                     }
-                    stmt.executeUpdate(insertQuery.append(insertValues).append("\"").append(territoryCode).append("\")").toString());
-
-                    if (hasError) {
-                        connDst.commit();
-                    }
-
-                    chunkCounter++;
+                    counter++;
                 }
+                stmt.executeUpdate(insertQuery.append(insertValues).append("\"").append(territoryCode).append("\")").toString());
+
+                if (hasError) {
+                    connDst.commit();
+                }
+
+                chunkCounter++;
 
             } catch (Exception e) {
                 if (hasError) {
@@ -216,8 +231,9 @@ public class TerritoryEngine {
 
         if (!hasError) {
             connDst.commit();
-            dictionaryInfo.incLoaded(chunkCounter);
         }
+
+        dictionaryInfo.incLoaded(chunkCounter);
 
     }
 
