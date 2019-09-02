@@ -256,10 +256,7 @@ public class MonitorWriter {
         }
         out.println("        NULL AS `field`,");
         out.println("        NULL AS `freshlist`,");
-        out.println("        NULL AS `expected`,");
-        out.println("        NULL AS `field_freshlist`,");
-        out.println("        NULL AS `field_expected`,");
-        out.println("        NULL AS `freshlist_expected`");
+        out.println("        NULL AS `expected`");
         out.println("    ");
         out.println("    UNION SELECT ");
         out.print("        CONCAT(");
@@ -275,10 +272,7 @@ public class MonitorWriter {
         }
         out.println("        SUM(`h`.`returned`) AS `returned`,");
         out.println("        SUM(`l`.`returned`) AS `returned`,");
-        out.println("        SUM(`e`.`expected`) AS `expected`,");
-        out.println("        ((SUM(`h`.`returned`) / SUM(`l`.`returned`)) * 100) AS `field_freshlist`,");
-        out.println("        ((SUM(`h`.`returned`) / SUM(`e`.`expected`)) * 100) AS `field_expected`,");
-        out.println("        ((SUM(`l`.`returned`) / SUM(`e`.`expected`)) * 100) AS `freshlist_expected`");
+        out.println("        SUM(`e`.`expected`) AS `expected`");
         out.println("    FROM");
         printSubTable(tm, "aux_household_returned", "returned", upTo, out);
         out.println("        `h`");
@@ -377,9 +371,6 @@ public class MonitorWriter {
         out.println("     `field` decimal(24,0) DEFAULT NULL,");
         out.println("     `freshlist`decimal(24,0) DEFAULT NULL,");
         out.println("     `expected`decimal(24,0) DEFAULT NULL,");
-        out.println("     `field_freshlist` decimal(24,4) DEFAULT NULL,");
-        out.println("     `field_expected`decimal(24,4) DEFAULT NULL,");
-        out.println("     `freshlist_expected` decimal(24,4) DEFAULT NULL,");
         out.println("     `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,");
         out.println("      PRIMARY KEY (`id`)");
         out.println(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");

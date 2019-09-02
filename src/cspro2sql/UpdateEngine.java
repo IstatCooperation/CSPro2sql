@@ -160,7 +160,7 @@ public class UpdateEngine {
         for (String field : territoryFields) {
             fields += "`" + field + "`,";
         }
-        fields += "`field`, `freshlist`, `expected`, `field_freshlist`, `field_expected`, `freshlist_expected`";
+        fields += "`field`, `freshlist`, `expected`";
         query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ", `UPDATE_TIME`) SELECT " + fields + ", CURRENT_TIMESTAMP FROM " + schema + ".m" + template + " WHERE `" + territoryFields.get(0) + "` IS NOT NULL";
         try (Statement countStmt = connDst.createStatement()) {
             countStmt.executeUpdate(query);
