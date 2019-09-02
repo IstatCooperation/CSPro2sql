@@ -102,6 +102,8 @@ public class TerritoryEngine {
                     dictionaryInfo.incTotal(territoryList.size());
 
                     try (Statement stmt = connDst.createStatement()) {
+                        
+                        stmt.executeQuery("SET foreign_key_checks=0");
 
                         start = System.currentTimeMillis();
 
@@ -152,10 +154,13 @@ public class TerritoryEngine {
 
                             chunkCounter++;
                         }
+                        
+                         stmt.executeQuery("SET foreign_key_checks=1");
+                        
                         System.out.println();
                         stop = System.currentTimeMillis();
                         if (dictionaryInfo.getErrors() > 0) {
-                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
+                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check table cspro2sql_error)!");
                         } else {
                             System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed!");
                         }
@@ -187,7 +192,7 @@ public class TerritoryEngine {
         StringBuilder insertValues = new StringBuilder();
         StringBuilder territoryCode = new StringBuilder();
 
-        int chunkCounter = 0;
+        int chunkCounter = 0, id;
         for (Territory territory : territoryChunk) {
 
             try {
@@ -213,10 +218,12 @@ public class TerritoryEngine {
             } catch (Exception e) {
                 if (hasError) {
                     connDst.rollback();
-                    dictionaryQuery.writeTerritoryError("Error loading item " + dictionaryInfo.getLoaded() + chunkCounter, territory.toString(),
+                    id = dictionaryInfo.getLoaded() + chunkCounter;
+                    dictionaryQuery.writeTerritoryError("Error loading item " + id, territory.toString(),
                             insertQuery.append(insertValues).append("\"").append(territoryCode).append("\")").toString());
                     dictionaryInfo.incErrors();
-                    errors.put(dictionaryInfo.getLoaded() + chunkCounter, territory.toString());
+                    
+                    errors.put(id, territory.toString());
                 } else {
                     throw new SQLException("Error loading data"); //restart loading process
                 }

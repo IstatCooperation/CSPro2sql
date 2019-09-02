@@ -226,7 +226,6 @@ public class LoaderEngine {
                                     result = selectQuestionnaire.executeQuery();
                                 }
                             }
-                            System.out.println();
 
                             if (!checkOnly) {
                                 dictionaryQuery.updateRevision(dictionaryInfo);
@@ -238,13 +237,19 @@ public class LoaderEngine {
 
                         stop = System.currentTimeMillis();
 
-                        if (errors) {
-                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
+                        if (lastRevision == nextRevision) { //No data transfer (dashboard is up to date)
+                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " No data to load!");
                         } else {
-                            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed!");
+                            System.out.println();
+                            if (errors) {
+                                System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed with ERRORS (check error table)!");
+                            } else {
+                                System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Data transfer completed!");
+                            }
+                            dictionaryInfo.printShort(System.out, stop - start);
                         }
-                        dictionaryInfo.printShort(System.out, stop - start);
-
+                        System.out.println();
+                        
                         if (!dictionaryQuery.stop(dictionaryInfo)) {
                             System.out.println("Impossible to set LOADER status to stop!");
                             errors = false;
@@ -374,7 +379,7 @@ public class LoaderEngine {
             selectSql.setLength(0);
         }
 
-        StringBuilder selectMax  = new StringBuilder();
+        StringBuilder selectMax = new StringBuilder();
         for (Map.Entry<String, Integer> entry : tableLastId.entrySet()) {
             selectMax.append("SELECT MAX(ID) FROM ").append(dictionary.getSchema()).append(".").append(entry.getKey());
             //System.out.println(selectMax);

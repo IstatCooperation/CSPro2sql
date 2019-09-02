@@ -11,9 +11,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -59,10 +62,13 @@ public class UpdateEngine {
 
     static boolean execute(Properties prop) {
         String schema = prop.getProperty("db.dest.schema").trim();
-        int territoryLevel = -1;
-        Long start, stop;
+        int territoryLevel = -1, maxLength = -1;
+        Long reportStart, reportStop, start, stop;
+        SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
         try {
             Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+            
+            System.out.println(SDF.format(new Date(System.currentTimeMillis())) + " Starting report update");
 
             //Connect to the destination database
             ConnectionParams destConnection = ConnectionParams.getDestParams(prop);
@@ -70,21 +76,27 @@ public class UpdateEngine {
                 connDst.setAutoCommit(false);
 
                 try (Statement readDst = connDst.createStatement()) {
+                    start = System.currentTimeMillis();
+                    maxLength = getReportMaxLength(connDst, schema);
+
                     try (Statement writeDst = connDst.createStatement()) {
                         try (ResultSet rs = readDst.executeQuery("SELECT * FROM " + schema + ".dashboard_report where REPORT_TYPE != " + Report.REPORT_TYPE_GIS + " AND IS_VISIBLE = 1")) {
                             while (rs.next()) {
                                 String template = rs.getString(4); //GET REPORT NAME
-                                start = System.currentTimeMillis();
+                                reportStart = System.currentTimeMillis();
                                 System.out.print("Updating " + template + "... ");
+                                padOut(maxLength, template.length());
                                 writeDst.executeUpdate("DROP TABLE IF EXISTS " + schema + ".m" + template);
-                                writeDst.executeQuery("SELECT 0 INTO @ID");
-                                writeDst.executeUpdate("CREATE TABLE " + schema + ".m" + template + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + template + ".* FROM " + schema + "." + template);
-                                stop = System.currentTimeMillis();
+                                writeDst.executeUpdate("CREATE TABLE " + schema + ".m" + template
+                                        + " (ID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (ID)) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+                                        + " SELECT " + template + ".* FROM " + schema + "." + template);
+                                reportStop = System.currentTimeMillis();
                                 System.out.print("done");
-                                System.out.println(" [" + Utility.convertMillis(stop - start) + "]");
+                                System.out.println(" [" + Utility.convertMillis(reportStop - reportStart) + "]");
 
                                 if (TOTAL_REPORTS.contains(template)) {
                                     System.out.print("Storing t" + template + "... ");
+                                    padOut(maxLength, template.length());
                                     updateTotalReport(connDst, schema, template);
                                     System.out.println("done");
                                 }
@@ -92,15 +104,20 @@ public class UpdateEngine {
                                 territoryLevel = getReportTerritoryLevel(connDst, schema, template);
                                 if (territoryLevel > 0) {
                                     System.out.print("Storing t" + template + "... ");
+                                    padOut(maxLength, template.length());
                                     updateProgressReport(connDst, schema, template, territoryLevel);
                                     System.out.println("done");
                                 }
                                 connDst.commit();
                             }
                         }
-                        updateDashboardStatus(connDst, schema);
+                        updateDashboardStatus(connDst, schema, maxLength);
                     }
                 }
+                
+                stop = System.currentTimeMillis();
+                System.out.print("Report update completed in [" + Utility.convertMillis(stop - start) + "]");
+                
                 connDst.close();
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
@@ -110,10 +127,11 @@ public class UpdateEngine {
         return true;
     }
 
-    private static void updateDashboardStatus(Connection conn, String schema) {
+    private static void updateDashboardStatus(Connection conn, String schema, int maxLength) {
         Statement insertStmt;
         Integer count;
         System.out.print("Updating dashboard_status... ");
+        padOut(maxLength, "dashboard_status".length());
         try (Statement countStmt = conn.createStatement()) {
             try (ResultSet rs = countStmt.executeQuery("SELECT COUNT(*) FROM " + schema + ".DASHBOARD_STATUS")) {
                 while (rs.next()) {
@@ -188,10 +206,8 @@ public class UpdateEngine {
     }
 
     private static void updateTotalReport(Connection connDst, String schema, String template) {
-
         String query;
         String fields = null;
-
         switch (template) {
             case "r_questionnaire_info":
                 fields = "`TOTAL`, `AVG_INDIVIDUAL`, `AVG_INDIVIDUAL_MALE`, `AVG_INDIVIDUAL_FEMALE`";
@@ -205,7 +221,6 @@ public class UpdateEngine {
         }
 
         if (fields != null) {
-
             query = "INSERT INTO " + schema + ".t" + template + "(" + fields + ", `UPDATE_TIME`) SELECT " + fields + ", CURRENT_TIMESTAMP FROM " + schema + ".m" + template;
 
             try (Statement countStmt = connDst.createStatement()) {
@@ -213,6 +228,27 @@ public class UpdateEngine {
             } catch (SQLException ex) {
                 System.out.println("Database exception (" + ex.getMessage() + ")");
             }
+        }
+    }
+
+    private static int getReportMaxLength(Connection connDst, String schema) {
+        int maxLength = -1;
+        String query = "SELECT max(length(REPORT_VIEW)) FROM " + schema + ".dashboard_report";
+        try (Statement countStmt = connDst.createStatement()) {
+            try (ResultSet rs = countStmt.executeQuery(query)) {
+                if (rs.next()) {
+                    maxLength = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            System.out.println("Database exception (" + ex.getMessage() + ")");
+        }
+        return maxLength;
+    }
+
+    private static void padOut(int maxLength, int reportNameLength) {
+        for (int i = 0; i < maxLength - reportNameLength; i++) {
+            System.out.print(" ");
         }
     }
 }

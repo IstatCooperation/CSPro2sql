@@ -179,19 +179,21 @@ public class MonitorWriter {
     }
 
     private static void printMaterialized(String schema, String name, PrintStream out) {
-        out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
-        out.println("SELECT 0 INTO @ID;");
-        out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
+        out.println("CREATE TABLE IF NOT EXISTS " + schema + ".m" + name + " (ID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (ID)) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+                + " SELECT " + name + ".* FROM " + schema + "." + name + ";");
         out.println();
+        int isVisible = 1;
+        if(name.equals("r_religion")){ //disable religion report
+            isVisible = 0; 
+        }
         out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `IS_VISIBLE`, `REPORT_TYPE`) "
-                + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", 1, " + Report.getReportType(name) + ");");
+                + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", " + isVisible + ", " + Report.getReportType(name) + ");");
         out.println();
     }
     
     private static void printMaterialized(String schema, String name, int upTo, PrintStream out) {
-        out.println("DROP TABLE IF EXISTS " + schema + ".m" + name + ";");
-        out.println("SELECT 0 INTO @ID;");
-        out.println("CREATE TABLE " + schema + ".m" + name + " (PRIMARY KEY (ID)) AS SELECT @ID := @ID + 1 ID, " + name + ".* FROM " + schema + "." + name + ";");
+        out.println("CREATE TABLE IF NOT EXISTS " + schema + ".m" + name + " (ID INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (ID)) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+                + " SELECT " + name + ".* FROM " + schema + "." + name + ";");
         out.println();
         out.println("INSERT INTO " + schema + ".`dashboard_report` (`NAME`, `REPORT_VIEW`, `LIST_ORDER`, `TERRITORY_LEVEL`, `IS_VISIBLE`, `REPORT_TYPE`) "
                 + "VALUES ('" + Report.getReportName(name) + "','" + name + "', " + (reportCount++) + ", " + upTo + ", 1, " + Report.getReportType(name) + ");");
@@ -366,9 +368,8 @@ public class MonitorWriter {
     private static void printProgressReport(TemplateManager tm, String reportName, int upTo, PrintStream out) {
         String schema = tm.getDictionary().getSchema();
         Territory territory = tm.getTerritory();
-
-        out.println("DROP TABLE IF EXISTS " + schema + ".t" + reportName + ";");
-        out.println("CREATE TABLE " + schema + ".t" + reportName + " (");
+        
+        out.println("CREATE TABLE IF NOT EXISTS " + schema + ".t" + reportName + " (");
         out.println("     `id` int(11) NOT NULL AUTO_INCREMENT,");
         for (int i = 0; i < upTo; i++) {
             out.println("     `" + territory.get(i).getItemName() + "` int(11) DEFAULT NULL,");
