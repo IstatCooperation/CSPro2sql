@@ -32,7 +32,7 @@ innodb_log_file_size=256M
 ```
 The first setting will strongly impact the performance on the loaded engine!
 
-In the db folder there are two example files for [Mysql 5.7](db/mysql 5.7/my.ini) and [Mysql 8.0](db/mysql 8.0/my.ini)
+In the db folder there are two example files for [Mysql 5.7](../db/mysql 5.7/my.ini) and [Mysql 8.0](../db/mysql 8.0/my.ini)
 
 ## Usage
 
