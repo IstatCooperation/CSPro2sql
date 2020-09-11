@@ -84,7 +84,7 @@ public class LoaderEngine {
 
         for (Dictionary dictionary : dictionaries) {
             try {
-                Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+                Class.forName("com.mysql.cj.jdbc.Driver");
                 String srcSchema = prop.getProperty("db.source.schema").trim();
                 String srcDataTable = dictionary.getName();
 
@@ -95,7 +95,7 @@ public class LoaderEngine {
                     Long start, stop, chunkStart, chunkStop;
                     //Connect to Dashboard database
                     if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
-                        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+                        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                     }
                     ConnectionParams destConnParams = ConnectionParams.getDestParams(prop);
                     try (Connection connDst = DriverManager.getConnection(destConnParams.getUri(), destConnParams.getUsername(), destConnParams.getPassword())) {
@@ -256,7 +256,7 @@ public class LoaderEngine {
                         }
                     }
                 }
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+            } catch (ClassNotFoundException | SQLException ex) {
                 LOGGER.log(Level.SEVERE, "Database exception", ex);
             }
         }

@@ -27,7 +27,7 @@
         <delete file="${store.dir}/temp_final.jar"/>
     </target>
     
-    <target name="-post-jar">
+    <target name="zip-sources">
         <echo message="Creating cspro2sql.zip"/>
         <zip destfile="cspro2sql.zip">
             <zipfileset dir="dist" includes="cspro2sql.jar" prefix="cspro2sql/lib" />
