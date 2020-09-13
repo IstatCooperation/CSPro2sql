@@ -53,8 +53,8 @@ public class TestConnectionEngine {
 
     public static boolean execute(Properties prop) {
         try {
-            //Test source database connetcion
-            Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+            //Test source database connection
+            Class.forName("com.mysql.cj.jdbc.Driver");
             System.out.println("Connecting to " + ConnectionParams.MYSQL_JDBC + prop.getProperty("db.source.server") + ":" + prop.getProperty("db.source.port") 
                     +  "/" + prop.getProperty("db.source.schema"));
             ConnectionParams sourceConnection = ConnectionParams.getSourceParams(prop);
@@ -66,7 +66,7 @@ public class TestConnectionEngine {
                 System.out.println("Connecting to " + ConnectionParams.MYSQL_JDBC + prop.getProperty("db.dest.server") + ":" + prop.getProperty("db.dest.port") 
                         + "/" + prop.getProperty("db.dest.schema"));
                 if ("sqlserver".equals(prop.getProperty("db.dest.type"))) {
-                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+                    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                 } 
                 ConnectionParams destConnParams = ConnectionParams.getDestParams(prop);
                 try (Connection connDst = DriverManager.getConnection(destConnParams.getUri(), destConnParams.getUsername(), destConnParams.getPassword())) {
@@ -74,7 +74,7 @@ public class TestConnectionEngine {
                     System.out.println("Connection successful!");
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+        } catch (ClassNotFoundException | SQLException ex) {
             System.out.println("Database exception (" + ex.getMessage() + ")");
             return false;
         }

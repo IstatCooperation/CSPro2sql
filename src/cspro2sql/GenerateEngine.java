@@ -46,7 +46,7 @@ public class GenerateEngine {
     public static final String FILE_TERRITORY_TEMPLATE = "territory_template.csv";
     public static final String FILE_BATCH_UPDATE = "batch_update";
     public static final String FILE_BATCH_LOAD = "batch_load";
-    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS = System.getProperty("os.name").toLowerCase();
     private static final String FILE_SEPARATOR = getFileSeparator();
 
     public static void main(String[] args) {
@@ -95,7 +95,7 @@ public class GenerateEngine {
 
             System.out.println("Project " + surveyFolder + " successfully created.");
             System.out.println("Now you are ready to start processing your data!");
-            System.out.println("");
+            System.out.println();
             System.out.println("Please open the file " + surveyFolder + "/" + FILE_README);
 
         } else {
@@ -778,7 +778,7 @@ public class GenerateEngine {
                     bw.write("[METADATA @dictionary level]");
                     bw.newLine();
                     bw.newLine();
-                    bw.write("#household: use this tag to mark the household dictionary (check the 'Note=#fieldwork' in the Household_template.dcf file)");
+                    bw.write("#household: use this tag to mark the household dictionary (check the 'Note=#household' in the Household_template.dcf file)");
                     bw.newLine();
                     bw.newLine();
                     bw.write("#individual: use this tag to mark the individual table (check the 'Note=#individual' in the Household_template.dcf file)");
